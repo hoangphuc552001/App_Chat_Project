@@ -98,6 +98,8 @@ public class RegisterFrame extends JFrame implements ActionListener {
             }
             else if (!passwordTextField.getText().toString().equals(cfpasswordField.getText().toString())){
                 JOptionPane.showMessageDialog(null,"Password is not fit.","Alert",JOptionPane.WARNING_MESSAGE);
+            }else if(AccountUser.checkExistUser(usernameTextField.getText().toString())==false){
+                JOptionPane.showMessageDialog(null,"Account Existed.","Alert",JOptionPane.WARNING_MESSAGE);
             }
             else{
                 BufferedWriter buffer = null;

@@ -97,7 +97,8 @@ public class MenuFrame extends JFrame implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource().equals(btnLogin)){
-
+            this.dispose();
+            LoginFrame.GUI();
         }
         else if (e.getSource().equals(btnRegister)){
             this.dispose();
