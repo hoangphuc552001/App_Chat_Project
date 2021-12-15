@@ -16,8 +16,8 @@ public class RegisterFrame extends JFrame implements ActionListener {
     JPasswordField passwordTextField = new JPasswordField();
     JPasswordField cfpasswordField = new JPasswordField();
     JButton registerButton = new JButton("REGISTER");
+    JButton backButton = new JButton("BACK");
     JCheckBox showPassword = new JCheckBox("Show Password");
-
     RegisterFrame() {
         container.setLayout(null);
         //
@@ -33,6 +33,7 @@ public class RegisterFrame extends JFrame implements ActionListener {
         container.add(cfpasswordField);
         container.add(showPassword);
         container.add(registerButton);
+        container.add(backButton);
         register.setBounds(160, 40, 150, 30);
         name.setBounds(50, 100, 100, 30);
         nameTextField.setBounds(150, 100, 150, 30);
@@ -43,8 +44,10 @@ public class RegisterFrame extends JFrame implements ActionListener {
         cfpassword.setBounds(50, 220, 100, 30);
         cfpasswordField.setBounds(150, 220, 150, 30);
         showPassword.setBounds(150, 260, 150, 30);
-        registerButton.setBounds(150, 300, 100, 30);
+        registerButton.setBounds(210, 300, 100, 30);
         registerButton.addActionListener(this);
+        backButton.setBounds(100, 300, 100, 30);
+        backButton.addActionListener(this);
         showPassword.addActionListener(this);
 
         // Setting JFrame
@@ -73,7 +76,11 @@ public class RegisterFrame extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource().equals(showPassword)) {
+        if (e.getSource().equals(backButton)){
+            this.dispose();
+            MenuFrame.GUI();
+        }
+        else if (e.getSource().equals(showPassword)) {
             if (showPassword.isSelected()) {
                 passwordTextField.setEchoChar((char) 0);
                 cfpasswordField.setEchoChar((char)0);
@@ -95,10 +102,11 @@ public class RegisterFrame extends JFrame implements ActionListener {
             else{
                 BufferedWriter buffer = null;
                 try {
-                    buffer = new BufferedWriter(new FileWriter("useraccount.txt"));
+                    buffer = new BufferedWriter(new FileWriter("useraccount.txt",true));
                     String config = nameTextField.getText().toString()
                             + "@" + usernameTextField.getText().toString()
-                            + "@" + passwordTextField.getText().toString();
+                            + "@" + passwordTextField.getText().toString()
+                            +"\n";
                     buffer.write(config);
                     buffer.close();
                 } catch (IOException ex) {
@@ -113,7 +121,4 @@ public class RegisterFrame extends JFrame implements ActionListener {
         }
     }
 
-    public static void main(String[] args) {
-        RegisterFrame.GUI();
-    }
 }
