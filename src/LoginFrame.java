@@ -9,7 +9,7 @@ public class LoginFrame extends JFrame implements ActionListener {
     private String host = "localhost";
     private int port = 3200;
     private Socket socket;
-
+    private String username;
     private DataInputStream dis;
     private DataOutputStream dos;
     Container container = getContentPane();
@@ -84,17 +84,18 @@ public class LoginFrame extends JFrame implements ActionListener {
             String response = Login(userTextField.getText().toString(), passwordField.getText().toString());
             // đăng nhập thành công thì server sẽ trả về  chuỗi "Log in successful"
             if (response.equals("Log in successful") ) {
+                username = userTextField.getText().toString();
                 JOptionPane.showMessageDialog(null,"Login successful. Welcome to my App Chat");
-//                EventQueue.invokeLater(new Runnable() {
-//                    public void run() {
-//                        try {
-//                            ChatFrame frame = new ChatFrame(username, dis, dos);
-//                            frame.setVisible(true);
-//                        } catch (Exception e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                });
+                EventQueue.invokeLater(new Runnable() {
+                    public void run() {
+                        try {
+                            ChatFrame frame = new ChatFrame(username, dis, dos);
+                            frame.setVisible(true);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
                 dispose();
             }else {
                 userTextField.setText("");

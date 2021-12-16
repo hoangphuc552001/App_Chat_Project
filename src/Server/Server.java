@@ -47,6 +47,30 @@ public class Server {
             pw.close();
         }
     }
+    /**
+     * Gửi yêu cầu các user đang online cập nhật lại danh sách người dùng trực tuyến
+     * Được gọi mỗi khi có 1 user online hoặc offline
+     */
+    public static void updateOnlineUsers() {
+        String message = " ";
+        for (Handler client:clients) {
+            if (client.getIsLoggedIn() == true) {
+                message += ",";
+                message += client.getUsername();
+            }
+        }
+        for (Handler client:clients) {
+            if (client.getIsLoggedIn() == true) {
+                try {
+                    client.getDos().writeUTF("Online users");
+                    client.getDos().writeUTF(message);
+                    client.getDos().flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
     public Server() throws IOException {
         try {
             // Object dùng để synchronize cho việc giao tiếp với các người dùng
@@ -75,7 +99,7 @@ public class Server {
                     // Kiểm tra tên đăng nhập đã tồn tại hay chưa
                     if (isExisted(username) == false) {
                         // Tạo một Handler để giải quyết các request từ user này
-                        Handler newHandler = new Handler(socket, username, password, true, lock);
+                        Handler newHandler = new Handler(socket, username, password, false, lock);
                         clients.add(newHandler);
                         // Lưu danh sách tài khoản xuống file và gửi thông báo đăng nhập thành công cho user
                         this.saveAccounts();
@@ -102,12 +126,18 @@ public class Server {
                             if (client.getUsername().equals(username)) {
                                 // Kiểm tra mật khẩu có trùng khớp không
                                 if (password.equals(client.getPassword())) {
-
+                                    // Tạo Handler mới để giải quyết các request từ user này
+                                    Handler newHandler = client;
+                                    newHandler.setSocket(socket);
+                                    newHandler.setIsLoggedIn(true);
                                     // Thông báo đăng nhập thành công cho người dùng
                                     dos.writeUTF("Log in successful");
                                     dos.flush();
+                                    // Tạo một Thread để giao tiếp với user này
+                                    Thread t = new Thread(newHandler);
+                                    t.start();
                                     // Gửi thông báo cho các client đang online cập nhật danh sách người dùng trực tuyến
-                                    //updateOnlineUsers();
+                                    updateOnlineUsers();
                                 } else {
                                     dos.writeUTF("Password is not correct");
                                     dos.flush();
