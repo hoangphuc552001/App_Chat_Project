@@ -2,9 +2,17 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.net.Socket;
 import javax.swing.*;
 
 public class RegisterFrame extends JFrame implements ActionListener {
+    private String host = "localhost";
+    private int port = 3200;
+    private Socket socket;
+
+    private DataInputStream dis;
+    private DataOutputStream dos;
+
     Container container = getContentPane();
     JLabel register = new JLabel("REGISTER");
     JLabel name = new JLabel("Name");
@@ -98,23 +106,26 @@ public class RegisterFrame extends JFrame implements ActionListener {
             }
             else if (!passwordTextField.getText().toString().equals(cfpasswordField.getText().toString())){
                 JOptionPane.showMessageDialog(null,"Password is not fit.","Alert",JOptionPane.WARNING_MESSAGE);
-            }else if(AccountUser.checkExistUser(usernameTextField.getText().toString())==false){
-                JOptionPane.showMessageDialog(null,"Account Existed.","Alert",JOptionPane.WARNING_MESSAGE);
             }
             else{
                 BufferedWriter buffer = null;
+                Connect();
+                String config = nameTextField.getText().toString()
+                        + "@" + usernameTextField.getText().toString()
+                        + "@" + passwordTextField.getText().toString()
+                        +"\n";
                 try {
-                    buffer = new BufferedWriter(new FileWriter("useraccount.txt",true));
-                    String config = nameTextField.getText().toString()
-                            + "@" + usernameTextField.getText().toString()
-                            + "@" + passwordTextField.getText().toString()
-                            +"\n";
-                    buffer.write(config);
-                    buffer.close();
-                } catch (IOException ex) {
+                    dos.writeUTF("Sign up");
+                    dos.writeUTF(String.valueOf(usernameTextField.getText().toString()));
+                    dos.writeUTF(String.valueOf(passwordTextField.getText().toString()));
+                    dos.flush();
+                    String response = dis.readUTF();
+                    if ( response.equals("Sign up successful")){
+                        JOptionPane.showMessageDialog(null,"Registered Successfully, Welcome to Chat App.");
+                    }
+                    } catch (IOException ex) {
                     ex.printStackTrace();
                 }
-                JOptionPane.showMessageDialog(null,"Registered Successfully.");
                 nameTextField.setText("");
                 usernameTextField.setText("");
                 passwordTextField.setText("");
@@ -122,5 +133,19 @@ public class RegisterFrame extends JFrame implements ActionListener {
             }
         }
     }
-
+    /**
+     * Connect to Server
+     */
+    public void Connect() {
+        try {
+            if (socket != null) {
+                socket.close();
+            }
+            socket = new Socket(host, port);
+            this.dis = new DataInputStream(socket.getInputStream());
+            this.dos = new DataOutputStream(socket.getOutputStream());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
 }
