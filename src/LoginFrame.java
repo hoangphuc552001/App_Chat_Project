@@ -82,7 +82,6 @@ public class LoginFrame extends JFrame implements ActionListener {
             }
         }else if(e.getSource().equals(loginButton)){
             String response = Login(userTextField.getText().toString(), passwordField.getText().toString());
-            System.out.println(response);
             // đăng nhập thành công thì server sẽ trả về  chuỗi "Log in successful"
             if (response.equals("Log in successful") ) {
                 JOptionPane.showMessageDialog(null,"Login successful. Welcome to my App Chat");
@@ -97,6 +96,10 @@ public class LoginFrame extends JFrame implements ActionListener {
 //                    }
 //                });
                 dispose();
+            }else {
+                userTextField.setText("");
+                passwordField.setText("");
+                JOptionPane.showMessageDialog(null,"Wrong Password","Alert",JOptionPane.WARNING_MESSAGE);
             }
         }
     }
@@ -113,6 +116,7 @@ public class LoginFrame extends JFrame implements ActionListener {
             this.dos = new DataOutputStream(socket.getOutputStream());
         } catch (IOException ex) {
             ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Can not connect to database!","Connected Fail",JOptionPane.ERROR_MESSAGE);
         }
     }
     /**

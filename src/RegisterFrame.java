@@ -147,6 +147,7 @@ public class RegisterFrame extends JFrame implements ActionListener {
             this.dos = new DataOutputStream(socket.getOutputStream());
         } catch (IOException ex) {
             ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Can not connect to database!","Connected Fail",JOptionPane.ERROR_MESSAGE);
         }
     }
 }

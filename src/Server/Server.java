@@ -66,7 +66,6 @@ public class Server {
 
                 // Đọc yêu cầu đăng nhập/đăng xuất
                 String request = dis.readUTF();
-                System.out.println(request);
                 if (request.equals("Sign up")) {
                     // Yêu cầu đăng ký từ user
 
@@ -75,24 +74,16 @@ public class Server {
 
                     // Kiểm tra tên đăng nhập đã tồn tại hay chưa
                     if (isExisted(username) == false) {
-
                         // Tạo một Handler để giải quyết các request từ user này
                         Handler newHandler = new Handler(socket, username, password, true, lock);
                         clients.add(newHandler);
-
                         // Lưu danh sách tài khoản xuống file và gửi thông báo đăng nhập thành công cho user
                         this.saveAccounts();
                         dos.writeUTF("Sign up successful");
                         dos.flush();
-
-                        // Tạo một Thread để giao tiếp với user này
-                        Thread t = new Thread(newHandler);
-                        t.start();
-
                         // Gửi thông báo cho các client đang online cập nhật danh sách người dùng trực tuyến
                         //updateOnlineUsers();
                     } else {
-
                         // Thông báo đăng nhập thất bại
                         dos.writeUTF("This username is being used");
                         dos.flush();
@@ -107,26 +98,14 @@ public class Server {
                     // Kiểm tra tên đăng nhập có tồn tại hay không
                     if (isExisted(username) == true) {
                         for (Handler client : clients) {
-                            System.out.println(client.getUsername());
-                            System.out.println(username);
+
                             if (client.getUsername().equals(username)) {
                                 // Kiểm tra mật khẩu có trùng khớp không
-                                System.out.println(client.getPassword());
-                                System.out.println(password);
                                 if (password.equals(client.getPassword())) {
-                                    // Tạo Handler mới để giải quyết các request từ user này
-                                    Handler newHandler = client;
-                                    newHandler.setSocket(socket);
-                                    newHandler.setIsLoggedIn(true);
 
                                     // Thông báo đăng nhập thành công cho người dùng
                                     dos.writeUTF("Log in successful");
                                     dos.flush();
-
-                                    // Tạo một Thread để giao tiếp với user này
-                                    Thread t = new Thread(newHandler);
-                                    t.start();
-
                                     // Gửi thông báo cho các client đang online cập nhật danh sách người dùng trực tuyến
                                     //updateOnlineUsers();
                                 } else {
@@ -136,6 +115,9 @@ public class Server {
                                 break;
                             }
                         }
+                    }else{
+                        dos.writeUTF("Password is not correct");
+                        dos.flush();
                     }
                 }
             }
