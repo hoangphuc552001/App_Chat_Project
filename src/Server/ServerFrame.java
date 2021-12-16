@@ -65,7 +65,8 @@ public class ServerFrame extends JFrame implements ActionListener {
         portname.setFont(new Font("Monaco", Font.PLAIN, 17));
         portnameTextfield = new JTextField();
         portnameTextfield.setText("3200");
-        portnameTextfield.setFont(new Font("Monaco", Font.PLAIN, 15));
+        portnameTextfield.setFont(new Font("Monaco", Font.BOLD, 15));
+        portnameTextfield.setForeground(new Color(12, 1, 0));
         portnameTextfield.setEnabled(false);
         portMidPannel.add(portname);
         portMidPannel.add(Box.createRigidArea(new Dimension(19, 0)));

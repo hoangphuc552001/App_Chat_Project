@@ -13,6 +13,7 @@ public class Server {
     private String dataFile = "useraccount.txt";
     private void loadAccounts() {
         File f=new File(dataFile);
+        if (f.exists())
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(dataFile), "utf8"));
 
@@ -97,7 +98,46 @@ public class Server {
                         dos.flush();
                     }
                 }
+                else if (request.equals("Log in")) {
+                    // Yêu cầu đăng nhập từ user
 
+                    String username = dis.readUTF();
+                    String password = dis.readUTF();
+
+                    // Kiểm tra tên đăng nhập có tồn tại hay không
+                    if (isExisted(username) == true) {
+                        for (Handler client : clients) {
+                            System.out.println(client.getUsername());
+                            System.out.println(username);
+                            if (client.getUsername().equals(username)) {
+                                // Kiểm tra mật khẩu có trùng khớp không
+                                System.out.println(client.getPassword());
+                                System.out.println(password);
+                                if (password.equals(client.getPassword())) {
+                                    // Tạo Handler mới để giải quyết các request từ user này
+                                    Handler newHandler = client;
+                                    newHandler.setSocket(socket);
+                                    newHandler.setIsLoggedIn(true);
+
+                                    // Thông báo đăng nhập thành công cho người dùng
+                                    dos.writeUTF("Log in successful");
+                                    dos.flush();
+
+                                    // Tạo một Thread để giao tiếp với user này
+                                    Thread t = new Thread(newHandler);
+                                    t.start();
+
+                                    // Gửi thông báo cho các client đang online cập nhật danh sách người dùng trực tuyến
+                                    //updateOnlineUsers();
+                                } else {
+                                    dos.writeUTF("Password is not correct");
+                                    dos.flush();
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
             }
 
         } catch (Exception ex){

@@ -120,10 +120,11 @@ public class RegisterFrame extends JFrame implements ActionListener {
                     dos.writeUTF(String.valueOf(passwordTextField.getText().toString()));
                     dos.flush();
                     String response = dis.readUTF();
-                    if ( response.equals("Sign up successful")){
+                    if (response.equals("Sign up successful")){
                         JOptionPane.showMessageDialog(null,"Registered Successfully, Welcome to Chat App.");
-                    }
-                    } catch (IOException ex) {
+                    }else
+                        JOptionPane.showMessageDialog(null,"Failed Register","Alert",JOptionPane.WARNING_MESSAGE);
+                } catch (IOException ex) {
                     ex.printStackTrace();
                 }
                 nameTextField.setText("");
