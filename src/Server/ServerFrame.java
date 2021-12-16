@@ -12,8 +12,9 @@ public class ServerFrame extends JFrame implements ActionListener {
     public static int port = 3200;
     JTextField portnameTextfield, servernameTextfield;
     public static JLabel user_Count_, status_;
-    private static JTextArea txtMessage;
-
+    public static JTextArea txtMessage;
+    public static int totalAllUser=0;
+    Thread t;
     /**
      * default constructor
      *
@@ -65,8 +66,7 @@ public class ServerFrame extends JFrame implements ActionListener {
         portname.setFont(new Font("Monaco", Font.PLAIN, 17));
         portnameTextfield = new JTextField();
         portnameTextfield.setText("3200");
-        portnameTextfield.setFont(new Font("Monaco", Font.BOLD, 15));
-        portnameTextfield.setForeground(new Color(12, 1, 0));
+        portnameTextfield.setFont(new Font("Monaco", Font.BOLD, 20));
         portnameTextfield.setEnabled(false);
         portMidPannel.add(portname);
         portMidPannel.add(Box.createRigidArea(new Dimension(19, 0)));
@@ -165,6 +165,13 @@ public class ServerFrame extends JFrame implements ActionListener {
     }
 
     /**
+     * update user online
+     */
+    public static void upDateUserOnline(int type){
+        if (type==1) user_Count_.setText(String.valueOf(++totalAllUser));
+        else user_Count_.setText(String.valueOf(--totalAllUser));
+    }
+    /**
      * set action listener
      */
     @Override
@@ -174,7 +181,7 @@ public class ServerFrame extends JFrame implements ActionListener {
             this.dispose();
         } else if (e.getSource().equals(btnStart)) {
             try {
-                Thread t = new Thread(){
+                t = new Thread(){
                     public void run() {
                         try {
                             new Server();
@@ -184,9 +191,8 @@ public class ServerFrame extends JFrame implements ActionListener {
                     }
                 };
                 t.start();
-
                 port = Integer.valueOf(portnameTextfield.getText()).intValue();
-                status_.setText("Running");
+                status_.setText("RUNNING");
                 status_.setForeground(new Color(14, 152, 70));
                 txtMessage.append("Server is starting on port " + port+"\n");
                 btnStop.setEnabled(true);
@@ -198,6 +204,8 @@ public class ServerFrame extends JFrame implements ActionListener {
         } else if (e.getSource().equals(btnStop)) {
             user_Count_.setText("0");
             try {
+                Server.socket.close();
+                Server.s.close();
                 txtMessage.append("Stop Server\n");
                 status_.setText("OFF");
                 status_.setForeground(new Color(211, 15, 15));

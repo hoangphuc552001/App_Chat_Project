@@ -7,8 +7,8 @@ import java.util.ArrayList;
 
 public class Server {
     private Object lock;
-    private ServerSocket s;
-    private Socket socket;
+    public static ServerSocket s;
+    public static Socket socket;
     static ArrayList<Handler> clients = new ArrayList<Handler>();
     private String dataFile = "useraccount.txt";
     private void loadAccounts() {
@@ -115,10 +115,10 @@ public class Server {
                 }
                 else if (request.equals("Log in")) {
                     // Yêu cầu đăng nhập từ user
-
+                    ServerFrame.upDateUserOnline(1);
                     String username = dis.readUTF();
                     String password = dis.readUTF();
-
+                    ServerFrame.txtMessage.append(username+" joined chat app\n");
                     // Kiểm tra tên đăng nhập có tồn tại hay không
                     if (isExisted(username) == true) {
                         for (Handler client : clients) {
@@ -258,10 +258,10 @@ class Handler implements Runnable{
 
                 // Đọc yêu cầu từ user
                 message = dis.readUTF();
-
                 // Yêu cầu đăng xuất từ user
                 if (message.equals("Log out")) {
-
+                    ServerFrame.upDateUserOnline(2);
+                    ServerFrame.txtMessage.append(username+" leaved chat app\n");
                     // Thông báo cho user có thể đăng xuất
                     dos.writeUTF("Safe to leave");
                     dos.flush();
@@ -271,7 +271,7 @@ class Handler implements Runnable{
                     this.isLoggedIn = false;
 
                     // Thông báo cho các user khác cập nhật danh sách người dùng trực tuyến
-//                    Server.updateOnlineUsers();
+                    Server.updateOnlineUsers();
                     break;
                 }
 
@@ -347,4 +347,5 @@ class Handler implements Runnable{
 
         }
     }
+
 }
