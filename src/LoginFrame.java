@@ -6,12 +6,7 @@ import java.net.Socket;
 import javax.swing.*;
 
 public class LoginFrame extends JFrame implements ActionListener {
-    private String host = "localhost";
-    private int port = 3200;
-    private Socket socket;
     private String username;
-    private DataInputStream dis;
-    private DataOutputStream dos;
     Container container = getContentPane();
     JLabel loginLabel = new JLabel("LOGIN");
     JLabel userLabel = new JLabel("USERNAME");
@@ -89,7 +84,7 @@ public class LoginFrame extends JFrame implements ActionListener {
                 EventQueue.invokeLater(new Runnable() {
                     public void run() {
                         try {
-                            ChatFrame frame = new ChatFrame(username, dis, dos);
+                            FrameMain frame = new FrameMain(username, Client.dis, Client.dos);
                             frame.setVisible(true);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -105,35 +100,19 @@ public class LoginFrame extends JFrame implements ActionListener {
         }
     }
     /**
-     * Connect to Server
-     */
-    public void Connect() {
-        try {
-            if (socket != null) {
-                socket.close();
-            }
-            socket = new Socket(host, port);
-            this.dis = new DataInputStream(socket.getInputStream());
-            this.dos = new DataOutputStream(socket.getOutputStream());
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Can not connect to database!","Connected Fail",JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    /**
      * Gửi yêu cầu đăng nhập đến server
      * Trả về kết quả phản hồi từ server
      */
     public String Login(String username, String password) {
         try {
-            Connect();
+            Client.Connect();
 
-            dos.writeUTF("Log in");
-            dos.writeUTF(username);
-            dos.writeUTF(password);
-            dos.flush();
+            Client.dos.writeUTF("Log in");
+            Client.dos.writeUTF(username);
+            Client.dos.writeUTF(password);
+            Client.dos.flush();
 
-            String response = dis.readUTF();
+            String response = Client.dis.readUTF();
             return response;
 
         } catch (IOException e) {

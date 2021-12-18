@@ -6,12 +6,7 @@ import java.net.Socket;
 import javax.swing.*;
 
 public class RegisterFrame extends JFrame implements ActionListener {
-    private String host = "localhost";
-    private int port = 3200;
-    private Socket socket;
 
-    private DataInputStream dis;
-    private DataOutputStream dos;
 
     Container container = getContentPane();
     JLabel register = new JLabel("REGISTER");
@@ -109,17 +104,17 @@ public class RegisterFrame extends JFrame implements ActionListener {
             }
             else{
                 BufferedWriter buffer = null;
-                Connect();
+                Client.Connect();
                 String config = nameTextField.getText().toString()
                         + "@" + usernameTextField.getText().toString()
                         + "@" + passwordTextField.getText().toString()
                         +"\n";
                 try {
-                    dos.writeUTF("Sign up");
-                    dos.writeUTF(String.valueOf(usernameTextField.getText().toString()));
-                    dos.writeUTF(String.valueOf(passwordTextField.getText().toString()));
-                    dos.flush();
-                    String response = dis.readUTF();
+                    Client.dos.writeUTF("Sign up");
+                    Client.dos.writeUTF(String.valueOf(usernameTextField.getText().toString()));
+                    Client.dos.writeUTF(String.valueOf(passwordTextField.getText().toString()));
+                    Client.dos.flush();
+                    String response = Client.dis.readUTF();
                     if (response.equals("Sign up successful")){
                         JOptionPane.showMessageDialog(null,"Registered Successfully, Welcome to Chat App.");
                     }else
@@ -134,20 +129,5 @@ public class RegisterFrame extends JFrame implements ActionListener {
             }
         }
     }
-    /**
-     * Connect to Server
-     */
-    public void Connect() {
-        try {
-            if (socket != null) {
-                socket.close();
-            }
-            socket = new Socket(host, port);
-            this.dis = new DataInputStream(socket.getInputStream());
-            this.dos = new DataOutputStream(socket.getOutputStream());
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Can not connect to database!","Connected Fail",JOptionPane.ERROR_MESSAGE);
-        }
-    }
+
 }

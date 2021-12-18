@@ -9,7 +9,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.text.*;
 
 
-public class ChatFrame extends JFrame {
+public class FrameMain extends JFrame {
 
     private JButton btnFile;
     private JButton btnSend;
@@ -56,9 +56,9 @@ public class ChatFrame extends JFrame {
         }
 
         if (yourMessage == true) {
-            StyleConstants.setForeground(userStyle, Color.red);
+            StyleConstants.setForeground(userStyle, Color.orange);
         } else {
-            StyleConstants.setForeground(userStyle, Color.BLUE);
+            StyleConstants.setForeground(userStyle, new Color(84,160,229));
         }
 
         try { doc.insertString(doc.getLength(), username + ": ", userStyle); }
@@ -67,7 +67,7 @@ public class ChatFrame extends JFrame {
         Style linkStyle = doc.getStyle("Link style");
         if (linkStyle == null) {
             linkStyle = doc.addStyle("Link style", null);
-            StyleConstants.setForeground(linkStyle, Color.BLUE);
+            StyleConstants.setForeground(linkStyle,Color.orange);
             StyleConstants.setUnderline(linkStyle, true);
             StyleConstants.setBold(linkStyle, true);
             linkStyle.addAttribute("link", new HyberlinkListener(filename, file));
@@ -130,7 +130,7 @@ public class ChatFrame extends JFrame {
             e1.printStackTrace();
         }
 
-//        autoScroll();
+        autoScroll();
     }
 
     /**
@@ -152,9 +152,9 @@ public class ChatFrame extends JFrame {
         }
 
         if (yourMessage == true) {
-            StyleConstants.setForeground(userStyle, Color.red);
+            StyleConstants.setForeground(userStyle, new Color(84,160,229));
         } else {
-            StyleConstants.setForeground(userStyle, Color.BLUE);
+            StyleConstants.setForeground(userStyle, Color.orange);
         }
 
         // In ra tên người gửi
@@ -164,7 +164,7 @@ public class ChatFrame extends JFrame {
         Style messageStyle = doc.getStyle("Message style");
         if (messageStyle == null) {
             messageStyle = doc.addStyle("Message style", null);
-            StyleConstants.setForeground(messageStyle, Color.BLACK);
+            StyleConstants.setForeground(messageStyle, Color.WHITE);
             StyleConstants.setBold(messageStyle, false);
         }
 
@@ -178,38 +178,143 @@ public class ChatFrame extends JFrame {
     /**
      * Create the frame.
      */
-    public ChatFrame(String username, DataInputStream dis, DataOutputStream dos) {
+    public FrameMain(String username, DataInputStream dis, DataOutputStream dos) {
         this.username = username;
         this.dis = dis;
         this.dos = dos;
         receiver = new Thread(new Receiver(dis));
         receiver.start();
+        //Frame
+        Container con = this.getContentPane();
+        // Setting con
+        con.setLayout(new BorderLayout());
+        //top pannel
+        //Top Pannel
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        JLabel titleLabel = new JLabel();
+        titleLabel.setText("Chat App");
+        titleLabel.setForeground(Color.white);
+        titleLabel.setFont(new Font("Monaco", Font.PLAIN, 35));
+        titleLabel.setAlignmentX(CENTER_ALIGNMENT);
+        topPanel.add(titleLabel);
 
-        setDefaultLookAndFeelDecorated(true);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 586, 450);
-        contentPane = new JPanel();
-        contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-        contentPane.setBackground(new Color(230, 240, 247));
-        setContentPane(contentPane);
+        //
+        JPanel jPaneltitle = new JPanel();
+        jPaneltitle.setSize((new Dimension(50, 50)));
+        jPaneltitle.setLayout(new BoxLayout(jPaneltitle, BoxLayout.LINE_AXIS));
+        jPaneltitle.setBackground(new Color(222, 52, 49));
+        jPaneltitle.add(titleLabel);
+        //
+        JPanel jpEnd = new JPanel();
+        jpEnd.setLayout(new BoxLayout(jpEnd, BoxLayout.PAGE_AXIS));
+        jpEnd.add(Box.createRigidArea(new Dimension(0, 15)));
+        jpEnd.add(jPaneltitle);
+        jpEnd.add(Box.createRigidArea(new Dimension(0, 5)));
+        JSeparator s = new JSeparator();
+        s.setOrientation(SwingConstants.HORIZONTAL);
+        topPanel.add(jpEnd);
+        topPanel.add(s);
+        //mid
+        chatPanel = new JScrollPane();
+        chatPanel.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        JPanel leftPanel = new JPanel();
+        leftPanel.setBackground(Color.WHITE);
 
+        JLabel headerContent = new JLabel("Chat App");
+        headerContent.setFont(new Font("Monaco", Font.BOLD, 24));
         JPanel header = new JPanel();
-        header.setBackground(new Color(160, 190, 223));
+        header.setBackground(new Color(255, 230, 230));
+        header.add(headerContent);
 
         txtMessage = new JTextField();
         txtMessage.setEnabled(false);
         txtMessage.setColumns(10);
+        JPanel usernamePanel = new JPanel();
+        usernamePanel.setBackground(new Color(255, 153, 153));
+        chatPanel.setColumnHeaderView(usernamePanel);
+        lbReceiver.setText(this.username);
+        lbReceiver.setFont(new Font("Monaco", Font.BOLD, 16));
+        usernamePanel.add(lbReceiver);
 
-        btnSend = new JButton("Send");
+        chatWindows.put(" ", new JTextPane());
+        chatWindow = chatWindows.get(" ");
+        chatWindow.setFont(new Font("Monaco", Font.PLAIN, 14));
+        chatWindow.setEditable(false);
+        chatWindow.setBackground(Color.BLACK);
+        chatPanel.setViewportView(chatWindow);
+        JPanel chatChatPanel=new JPanel();
+        chatChatPanel.setLayout(new BoxLayout(chatChatPanel,BoxLayout.LINE_AXIS));
+        chatChatPanel.add(Box.createRigidArea(new Dimension(90,30)));
+        chatChatPanel.add(txtMessage);
+        chatChatPanel.add(Box.createRigidArea(new Dimension(90,30)));
+        JPanel midPanel=new JPanel();
+        midPanel.setLayout(new BoxLayout(midPanel,BoxLayout.PAGE_AXIS));
+        midPanel.add(chatPanel);
+        midPanel.add(Box.createRigidArea(new Dimension(0,20)));
+        //
+        JPanel endPanel=new JPanel();
+        endPanel.setLayout(new BoxLayout(endPanel,BoxLayout.PAGE_AXIS));
+        endPanel.add(chatChatPanel);
+        //
+        Dimension size = new Dimension(160, 35);
+        btnSend=new JButton("Send");
+        btnSend.setFont(new Font("Monaco", Font.BOLD, 18));
+        btnSend.setAlignmentX(CENTER_ALIGNMENT);
+        btnSend.setFocusable(false);
+        btnSend.setBackground(new Color(255, 153, 153));
+        btnSend.setForeground(Color.white);
+        btnSend.setUI(new stylebutton());
+        btnSend.setMaximumSize(size);
         btnSend.setEnabled(false);
-
-        chatPanel = new JScrollPane();
-        chatPanel.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-        JPanel leftPanel = new JPanel();
-        leftPanel.setBackground(new Color(230, 240, 247));
-
-        btnFile = new JButton("Send File");
+        //
+        btnFile=new JButton("File");
+        btnFile.setFont(new Font("Monaco", Font.BOLD, 18));
+        btnFile.setAlignmentX(CENTER_ALIGNMENT);
+        btnFile.setFocusable(false);
+        btnFile.setBackground(new Color(255, 153, 153));
+        btnFile.setForeground(Color.white);
+        btnFile.setUI(new stylebutton());
+        btnFile.setMaximumSize(size);
+        btnFile.setEnabled(false);
+        //
+        JPanel jbtn=new JPanel();
+        jbtn.setLayout(new BoxLayout(jbtn,BoxLayout.LINE_AXIS));
+        jbtn.add(btnSend);
+        jbtn.add(Box.createRigidArea(new Dimension(30,0)));
+        jbtn.add(btnFile);
+        //
+        endPanel.add(Box.createRigidArea(new Dimension(0,10)));
+        endPanel.add(jbtn);
+        endPanel.add(Box.createRigidArea(new Dimension(0,10)));
+        //check box
+        JPanel checkboxJJ=new JPanel();
+        checkboxJJ.setLayout(new BoxLayout(checkboxJJ,BoxLayout.LINE_AXIS));
+        JPanel checkboxJ=new JPanel();
+        checkboxJ.setLayout(new BoxLayout(checkboxJ,BoxLayout.PAGE_AXIS));
+        checkboxJ.setPreferredSize(new Dimension(90,0));
+        JLabel onU=new JLabel("Online Users");
+        onU.setForeground(new Color(128,51,51));
+        onU.setFont(new Font("Monaco", Font.BOLD, 13));
+        onU.setAlignmentX(CENTER_ALIGNMENT);
+        checkboxJ.add(onU);
+        checkboxJ.add(onlineUsers);
+        checkboxJ.add(Box.createRigidArea(new Dimension(0,250)));
+        checkboxJJ.add(checkboxJ);
+        //container
+        con.add(topPanel, BorderLayout.PAGE_START);
+        con.add(checkboxJJ,BorderLayout.LINE_START);
+        con.add(midPanel,BorderLayout.CENTER);
+        con.add(Box.createRigidArea(new Dimension(90,0)),BorderLayout.LINE_END);
+        con.add(endPanel,BorderLayout.PAGE_END);
+        // Setting JFrame
+        this.setSize(new Dimension(585,451));
+        this.setTitle("Chat App");
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setVisible(true);
+        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+        this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
+        //
         btnFile.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
@@ -252,65 +357,6 @@ public class ChatFrame extends JFrame {
                 }
             }
         });
-        btnFile.setEnabled(false);
-
-        JPanel emojis = new JPanel();
-        emojis.setBackground(new Color(230,240,247));
-        GroupLayout gl_contentPane = new GroupLayout(contentPane);
-        gl_contentPane.setHorizontalGroup(
-                gl_contentPane.createParallelGroup(Alignment.LEADING)
-                        .addComponent(header, GroupLayout.DEFAULT_SIZE, 560, Short.MAX_VALUE)
-                        .addGroup(gl_contentPane.createSequentialGroup()
-                                .addComponent(leftPanel, GroupLayout.PREFERRED_SIZE, 114, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(ComponentPlacement.RELATED)
-                                .addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
-                                        .addComponent(emojis, GroupLayout.DEFAULT_SIZE, 440, Short.MAX_VALUE)
-                                        .addGroup(gl_contentPane.createSequentialGroup()
-                                                .addComponent(txtMessage, GroupLayout.DEFAULT_SIZE, 346, Short.MAX_VALUE)
-                                                .addPreferredGap(ComponentPlacement.RELATED)
-                                                .addComponent(btnFile, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE)
-                                                .addPreferredGap(ComponentPlacement.RELATED)
-                                                .addComponent(btnSend, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE))
-                                        .addComponent(chatPanel, GroupLayout.DEFAULT_SIZE, 440, Short.MAX_VALUE)))
-        );
-        gl_contentPane.setVerticalGroup(
-                gl_contentPane.createParallelGroup(Alignment.LEADING)
-                        .addGroup(gl_contentPane.createSequentialGroup()
-                                .addComponent(header, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(ComponentPlacement.RELATED)
-                                .addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
-                                        .addGroup(gl_contentPane.createSequentialGroup()
-                                                .addComponent(chatPanel, GroupLayout.DEFAULT_SIZE, 286, Short.MAX_VALUE)
-                                                .addPreferredGap(ComponentPlacement.RELATED)
-                                                .addComponent(emojis, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-                                                .addPreferredGap(ComponentPlacement.RELATED)
-                                                .addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
-                                                        .addComponent(btnSend, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE)
-                                                        .addComponent(btnFile, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE)
-                                                        .addComponent(txtMessage, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE)))
-                                        .addComponent(leftPanel, GroupLayout.DEFAULT_SIZE, 355, Short.MAX_VALUE)))
-        );
-
-        JPanel panel = new JPanel();
-        panel.setBackground(new Color(230,240,247));
-        JLabel lblNewLabel_1 = new JLabel("CHAT WITH");
-        lblNewLabel_1.setFont(new Font("Tahoma", Font.BOLD, 11));
-        GroupLayout gl_leftPanel = new GroupLayout(leftPanel);
-        gl_leftPanel.setHorizontalGroup(
-                gl_leftPanel.createParallelGroup(Alignment.LEADING)
-                        .addGroup(gl_leftPanel.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(panel, GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
-                                .addContainerGap())
-                        .addGroup(gl_leftPanel.createSequentialGroup()
-                                .addGap(28)
-                                .addComponent(lblNewLabel_1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addGap(29))
-                        .addGroup(Alignment.TRAILING, gl_leftPanel.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(onlineUsers, 0, 101, Short.MAX_VALUE)
-                                .addContainerGap())
-        );
         onlineUsers.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -318,6 +364,7 @@ public class ChatFrame extends JFrame {
                     if (chatWindow != chatWindows.get(lbReceiver.getText())) {
                         txtMessage.setText("");
                         chatWindow = chatWindows.get(lbReceiver.getText());
+                        chatWindow.setBackground(Color.BLACK);
                         chatPanel.setViewportView(chatWindow);
                         chatPanel.validate();
                     }
@@ -335,44 +382,6 @@ public class ChatFrame extends JFrame {
 
             }
         });
-
-        gl_leftPanel.setVerticalGroup(
-                gl_leftPanel.createParallelGroup(Alignment.LEADING)
-                        .addGroup(gl_leftPanel.createSequentialGroup()
-                                .addGap(5)
-                                .addPreferredGap(ComponentPlacement.RELATED)
-                                .addComponent(panel, GroupLayout.PREFERRED_SIZE, 34, GroupLayout.PREFERRED_SIZE)
-                                .addGap(41)
-                                .addComponent(lblNewLabel_1)
-                                .addPreferredGap(ComponentPlacement.RELATED)
-                                .addComponent(onlineUsers, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(104, Short.MAX_VALUE))
-        );
-
-        JLabel lbUsername = new JLabel(this.username);
-        lbUsername.setFont(new Font("Arial", Font.BOLD, 15));
-        panel.add(lbUsername);
-        leftPanel.setLayout(gl_leftPanel);
-
-        JLabel headerContent = new JLabel("CHAT APP");
-        headerContent.setFont(new Font("Poor Richard", Font.BOLD, 24));
-        header.add(headerContent);
-
-        JPanel usernamePanel = new JPanel();
-        usernamePanel.setBackground(new Color(230,240,247));
-        chatPanel.setColumnHeaderView(usernamePanel);
-
-        lbReceiver.setFont(new Font("Arial", Font.BOLD, 16));
-        usernamePanel.add(lbReceiver);
-
-        chatWindows.put(" ", new JTextPane());
-        chatWindow = chatWindows.get(" ");
-        chatWindow.setFont(new Font("Arial", Font.PLAIN, 14));
-        chatWindow.setEditable(false);
-
-        chatPanel.setViewportView(chatWindow);
-        contentPane.setLayout(gl_contentPane);
-
         txtMessage.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {

@@ -293,24 +293,6 @@ class Handler implements Runnable{
                     }
                 }
 
-                // Yêu cầu gửi tin nhắn dạng Emoji
-                else if (message.equals("Emoji")) {
-                    String receiver = dis.readUTF();
-                    String emoji = dis.readUTF();
-
-                    for (Handler client: Server.clients) {
-                        if (client.getUsername().equals(receiver)) {
-                            synchronized (lock) {
-                                client.getDos().writeUTF("Emoji");
-                                client.getDos().writeUTF(this.username);
-                                client.getDos().writeUTF(emoji);
-                                client.getDos().flush();
-                                break;
-                            }
-                        }
-                    }
-                }
-
                 // Yêu cầu gửi File
                 else if (message.equals("File")) {
 

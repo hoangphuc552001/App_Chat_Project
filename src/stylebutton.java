@@ -1,8 +1,11 @@
-import javax.swing.*;
+import javax.swing.AbstractButton;
+import javax.swing.JComponent;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicButtonUI;
-import java.awt.*;
-
+import java.awt.Graphics2D;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.RenderingHints;
 public class stylebutton extends BasicButtonUI {
 
     @Override
