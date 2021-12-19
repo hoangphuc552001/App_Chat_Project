@@ -140,7 +140,7 @@ public class ServerFrame extends JFrame implements ActionListener {
         container.add(Box.createRigidArea(new Dimension(30, 0)), BorderLayout.LINE_END);
         container.add(bottomPanel, BorderLayout.PAGE_END);
         // Setting JFrame
-        this.setTitle("List Slang Words");
+        this.setTitle("Server Frame");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
         this.setSize(670, 680);

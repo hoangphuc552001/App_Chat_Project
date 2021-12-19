@@ -78,13 +78,13 @@ public class LoginFrame extends JFrame implements ActionListener {
         }else if(e.getSource().equals(loginButton)){
             String response = Login(userTextField.getText().toString(), passwordField.getText().toString());
             // đăng nhập thành công thì server sẽ trả về  chuỗi "Log in successful"
-            if (response.equals("Log in successful") ) {
+            if (response.equals("#logok") ) {
                 username = userTextField.getText().toString();
                 JOptionPane.showMessageDialog(null,"Login successful. Welcome to my App Chat");
                 EventQueue.invokeLater(new Runnable() {
                     public void run() {
                         try {
-                            FrameMain frame = new FrameMain(username, Client.dis, Client.dos);
+                            FrameMain frame = new FrameMain(username, Client.distream, Client.dostream);
                             frame.setVisible(true);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -107,12 +107,11 @@ public class LoginFrame extends JFrame implements ActionListener {
         try {
             Client.Connect();
 
-            Client.dos.writeUTF("Log in");
-            Client.dos.writeUTF(username);
-            Client.dos.writeUTF(password);
-            Client.dos.flush();
-
-            String response = Client.dis.readUTF();
+            Client.dostream.writeUTF("#login");
+            Client.dostream.writeUTF(username);
+            Client.dostream.writeUTF(password);
+            Client.dostream.flush();
+            String response = Client.distream.readUTF();
             return response;
 
         } catch (IOException e) {

@@ -1,30 +1,34 @@
 package Server;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 public class Server {
+    /**
+     * properties
+     */
     public static ServerSocket serverSocket;
     private Socket socket;
-    static Vector<Handler> clients = new Vector<Handler>();
+    public static Vector<Handler> clients = new Vector<Handler>();
     private String dataAccountFile = "useraccount.txt";
-
-    private void loadAccounts() {
+    /**
+     * methods
+     */
+    /**
+     * get account to file to check user
+//     */
+    private void getAccountFromFile() {
         File f = new File(dataAccountFile);
         if (f.exists())
             try {
-                BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(dataAccountFile), "utf8"));
-
-                String info = br.readLine();
-                while (info != null && !(info.isEmpty())) {
-                    clients.add(new Handler(info.split(",")[0], info.split(",")[1],false));
-                    info = br.readLine();
+                BufferedReader br = new BufferedReader(new FileReader(f.getName()));
+                String line = br.readLine();
+                while (line != null) {
+                    clients.add(new Handler(line.split("@")[0], line.split("@")[1],false));
+                    line = br.readLine();
                 }
-
                 br.close();
 
             } catch (Exception e) {
@@ -34,22 +38,13 @@ public class Server {
     }
 
     /**
-     * Lưu danh sách tài khoản xuống file
+     * Save account to file
      */
-    private void saveAccounts() {
-        PrintWriter pw = null;
-        try {
-            pw = new PrintWriter(new File(dataAccountFile), "utf8");
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
-        }
-        for (Handler client : clients) {
-            pw.print(client.getUsername() + "," + client.getPassword() + "\n");
-        }
-        pw.println("");
-        if (pw != null) {
-            pw.close();
-        }
+    private void saveAccountToFile(String username,String password) throws IOException {
+        FileWriter writer = new FileWriter(dataAccountFile,true);
+        BufferedWriter buffer = new BufferedWriter(writer);
+        buffer.write(username+"@"+password+"\n");
+        buffer.close();
     }
 
     /**
@@ -78,80 +73,70 @@ public class Server {
     }
 
     public Server() throws IOException {
+        DataInputStream distream=null;
+        DataOutputStream dostream=null;
         try {
-            // Object dùng để synchronize cho việc giao tiếp với các người dùng
-
-            // Đọc danh sách tài khoản đã đăng ký
-            this.loadAccounts();
-            // Socket dùng để xử lý các yêu cầu đăng nhập/đăng ký từ user
+            // Update account list from file
+            this.getAccountFromFile();
+            // process server
             serverSocket = new ServerSocket(3200);
-
             while (true) {
-                // Đợi request đăng nhập/đăng xuất từ client
+                // wait request from clients
                 socket = serverSocket.accept();
                 InputStream is = socket.getInputStream();
                 OutputStream os = socket.getOutputStream();
-                DataInputStream dis = new DataInputStream(is);
-                DataOutputStream dos = new DataOutputStream(os);
-                // Đọc yêu cầu đăng nhập/đăng xuất
-                String request = dis.readUTF();
-                if (request.equals("Sign up")) {
-                    // Yêu cầu đăng ký từ user
-
-                    String username = dis.readUTF();
-                    String password = dis.readUTF();
-
-                    // Kiểm tra tên đăng nhập đã tồn tại hay chưa
-                    if (isExisted(username) == false) {
-                        // Tạo một Handler để giải quyết các request từ user này
+                distream = new DataInputStream(is);
+                dostream= new DataOutputStream(os);
+                // process signin signup
+                String request = distream.readUTF();
+                if (request.equals("#signup")) {
+                    String username = distream.readUTF();
+                    String password = distream.readUTF();
+                    //Check exist user by username and password
+                    if (isExistedUser(username) == false) {
+                        //add client to array storing
                         Handler newHandler = new Handler(socket, username, password, false);
                         clients.add(newHandler);
-                        // Lưu danh sách tài khoản xuống file và gửi thông báo đăng nhập thành công cho user
-                        this.saveAccounts();
-                        dos.writeUTF("Sign up successful");
-                        dos.flush();
-                        // Gửi thông báo cho các client đang online cập nhật danh sách người dùng trực tuyến
-                        //updateOnlineUsers();
+                        //Save account
+                        this.saveAccountToFile(username,password);
+                        dostream.writeUTF("#signupsuccessful");
+                        dostream.flush();
                     } else {
-                        // Thông báo đăng nhập thất bại
-                        dos.writeUTF("This username is being used");
-                        dos.flush();
+                        dostream.writeUTF("#alreadyused");
+                        dostream.flush();
                     }
-                } else if (request.equals("Log in")) {
-                    // Yêu cầu đăng nhập từ user
-                    ServerFrame.upDateUserOnline(1);
-                    String username = dis.readUTF();
-                    String password = dis.readUTF();
-                    ServerFrame.txtMessage.append(username + " joined chat app\n");
-                    // Kiểm tra tên đăng nhập có tồn tại hay không
-                    if (isExisted(username) == true) {
+                } else if (request.equals("#login")) {
+                    String username = distream.readUTF();
+                    String password = distream.readUTF();
+                    //Check exist user by username and password
+                    if (isExistedUser(username) == true) {
                         for (Handler client : clients) {
-
                             if (client.getUsername().equals(username)) {
-                                // Kiểm tra mật khẩu có trùng khớp không
+                                // Check Password
                                 if (password.equals(client.getPassword())) {
-                                    // Tạo Handler mới để giải quyết các request từ user này
+                                    ServerFrame.upDateUserOnline(1);
+                                    ServerFrame.txtMessage.append(username + " joined chat app\n");
+                                    // Set object handler when login successfull
                                     Handler newHandler = client;
                                     newHandler.setSocket(socket);
                                     newHandler.setIsLoggedIn(true);
-                                    // Thông báo đăng nhập thành công cho người dùng
-                                    dos.writeUTF("Log in successful");
-                                    dos.flush();
-                                    // Tạo một Thread để giao tiếp với user này
-                                    Thread t = new Thread(newHandler);
-                                    t.start();
-                                    // Gửi thông báo cho các client đang online cập nhật danh sách người dùng trực tuyến
+                                    // announce user
+                                    dostream.writeUTF("#logok");
+                                    dostream.flush();
+                                    // Create thread for user to send and receive message
+                                    new Thread(newHandler).start();
+                                    // Update user online
                                     updateOnlineUsers();
                                 } else {
-                                    dos.writeUTF("Password is not correct");
-                                    dos.flush();
+                                    dostream.writeUTF("#incorrectpw");
+                                    dostream.flush();
                                 }
                                 break;
                             }
                         }
                     } else {
-                        dos.writeUTF("Password is not correct");
-                        dos.flush();
+                        dostream.writeUTF("Password is not correct");
+                        dostream.flush();
                     }
                 }
             }
@@ -161,14 +146,16 @@ public class Server {
         } finally {
             if (serverSocket != null) {
                 serverSocket.close();
+                distream.close();
+                dostream.close();
             }
         }
     }
 
     /**
-     * Kiểm tra username đã tồn tại hay chưa
+     * Check User Function
      */
-    public boolean isExisted(String name) {
+    public boolean isExistedUser(String name) {
         for (Handler client : clients) {
             if (client.getUsername().equals(name)) {
                 return true;
