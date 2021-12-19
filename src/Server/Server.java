@@ -9,7 +9,7 @@ public class Server {
     /**
      * properties
      */
-    public static ServerSocket serverSocket;
+    private ServerSocket serverSocket;
     private Socket socket;
     public static Vector<Handler> clients = new Vector<Handler>();
     private String dataAccountFile = "useraccount.txt";
@@ -18,7 +18,7 @@ public class Server {
      */
     /**
      * get account to file to check user
-//     */
+     //     */
     private void getAccountFromFile() {
         File f = new File(dataAccountFile);
         if (f.exists())
@@ -137,6 +137,12 @@ public class Server {
                     } else {
                         dostream.writeUTF("Password is not correct");
                         dostream.flush();
+                    }
+                }else if (request.equals("#stopserver")){
+                    if (serverSocket != null) {
+                        serverSocket.close();
+                        distream.close();
+                        dostream.close();
                     }
                 }
             }
