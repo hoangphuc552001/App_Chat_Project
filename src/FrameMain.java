@@ -22,14 +22,9 @@ public class FrameMain extends JFrame {
     private String username;
     private DataInputStream dis;
     private DataOutputStream dos;
-
+    private String currentcharUser=" ";
     private HashMap<String, JTextPane> chatWindows = new HashMap<String, JTextPane>();
     Thread receiver;
-
-    private void autoScroll() {
-        chatPanel.getVerticalScrollBar().setValue(chatPanel.getVerticalScrollBar().getMaximum());
-    }
-
     public void setUsername(String username) {
         this.username = username;
     }
@@ -43,7 +38,7 @@ public class FrameMain extends JFrame {
         StyledDocument doc;
         String window = null;
         if (username.equals(this.username)) {
-            window = lbReceiver.getText();
+            window = currentcharUser;
         } else {
             window = username;
         }
@@ -130,7 +125,6 @@ public class FrameMain extends JFrame {
             e1.printStackTrace();
         }
 
-        autoScroll();
     }
 
     /**
@@ -140,7 +134,7 @@ public class FrameMain extends JFrame {
 
         StyledDocument doc;
         if (username.equals(this.username)) {
-            doc = chatWindows.get(lbReceiver.getText()).getStyledDocument();
+            doc = chatWindows.get(currentcharUser).getStyledDocument();
         } else {
             doc = chatWindows.get(username).getStyledDocument();
         }
@@ -172,7 +166,6 @@ public class FrameMain extends JFrame {
         try { doc.insertString(doc.getLength(), message + "\n",messageStyle); }
         catch (BadLocationException e){}
 
-        autoScroll();
     }
 
     /**
@@ -330,7 +323,7 @@ public class FrameMain extends JFrame {
                         bis.read(selectedFile, 0, selectedFile.length);
 
                         dos.writeUTF("File");
-                        dos.writeUTF(lbReceiver.getText());
+                        dos.writeUTF(currentcharUser);
                         dos.writeUTF(fileChooser.getSelectedFile().getName());
                         dos.writeUTF(String.valueOf(selectedFile.length));
 
@@ -360,16 +353,16 @@ public class FrameMain extends JFrame {
         onlineUsers.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
-                    lbReceiver.setText((String) onlineUsers.getSelectedItem());
-                    if (chatWindow != chatWindows.get(lbReceiver.getText())) {
+                    currentcharUser=(String) onlineUsers.getSelectedItem();
+                    if (chatWindow != chatWindows.get(currentcharUser)) {
                         txtMessage.setText("");
-                        chatWindow = chatWindows.get(lbReceiver.getText());
+                        chatWindow = chatWindows.get(currentcharUser);
                         chatWindow.setBackground(Color.BLACK);
                         chatPanel.setViewportView(chatWindow);
                         chatPanel.validate();
                     }
 
-                    if (lbReceiver.getText().isBlank()) {
+                    if (currentcharUser.isBlank()) {
                         btnSend.setEnabled(false);
                         btnFile.setEnabled(false);
                         txtMessage.setEnabled(false);
@@ -385,7 +378,7 @@ public class FrameMain extends JFrame {
         txtMessage.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
-                if (txtMessage.getText().isBlank() || lbReceiver.getText().isBlank()) {
+                if (txtMessage.getText().isBlank() || currentcharUser.isBlank()) {
                     btnSend.setEnabled(false);
                 } else {
                     btnSend.setEnabled(true);
@@ -399,7 +392,7 @@ public class FrameMain extends JFrame {
 
                 try {
                     dos.writeUTF("Text");
-                    dos.writeUTF(lbReceiver.getText());
+                    dos.writeUTF(currentcharUser);
                     dos.writeUTF(txtMessage.getText());
                     dos.flush();
                 } catch (IOException e1) {
@@ -494,7 +487,7 @@ public class FrameMain extends JFrame {
                         String[] users = dis.readUTF().split(",");
                         onlineUsers.removeAllItems();
 
-                        String chatting = lbReceiver.getText();
+                        String chatting = currentcharUser;
 
                         boolean isChattingOnline = false;
 

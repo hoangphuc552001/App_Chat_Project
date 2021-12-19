@@ -204,8 +204,7 @@ public class ServerFrame extends JFrame implements ActionListener {
         } else if (e.getSource().equals(btnStop)) {
             user_Count_.setText("0");
             try {
-                Server.socket.close();
-                Server.s.close();
+                Server.serverSocket.close();
                 txtMessage.append("Stop Server\n");
                 status_.setText("OFF");
                 status_.setForeground(new Color(211, 15, 15));

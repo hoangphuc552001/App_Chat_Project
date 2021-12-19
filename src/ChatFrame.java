@@ -130,7 +130,7 @@ public class ChatFrame extends JFrame {
             e1.printStackTrace();
         }
 
-//        autoScroll();
+        autoScroll();
     }
 
     /**
@@ -179,6 +179,7 @@ public class ChatFrame extends JFrame {
      * Create the frame.
      */
     public ChatFrame(String username, DataInputStream dis, DataOutputStream dos) {
+        setTitle("CHAT APP");
         this.username = username;
         this.dis = dis;
         this.dos = dos;
