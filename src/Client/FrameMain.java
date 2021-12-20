@@ -24,6 +24,7 @@ public class FrameMain extends JFrame {
     private JPanel contentPane;
     private JTextField txtMessage;
     private JTextPane chatWindow;
+    private String temp="";
     JComboBox<String> onlineUsers = new JComboBox<String>();
     JList<String> onUser_ = new JList<String>();
     DefaultListModel<String> l1 = new DefaultListModel<>();
@@ -80,7 +81,6 @@ public class FrameMain extends JFrame {
         if (chatWindowofUsers.get(window).getMouseListeners() != null) {
             // Mouse listener click to download
             chatWindowofUsers.get(window).addMouseListener(new MouseListener() {
-
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     Element ele = doc.getCharacterElement(chatWindow.viewToModel(e.getPoint()));
@@ -90,50 +90,37 @@ public class FrameMain extends JFrame {
                         listener.execute();
                     }
                 }
-
                 @Override
                 public void mousePressed(MouseEvent e) {
                     // TODO Auto-generated method stub
-
                 }
-
                 @Override
                 public void mouseReleased(MouseEvent e) {
                     // TODO Auto-generated method stub
-
                 }
-
                 @Override
                 public void mouseEntered(MouseEvent e) {
                     // TODO Auto-generated method stub
-
                 }
-
                 @Override
                 public void mouseExited(MouseEvent e) {
                     // TODO Auto-generated method stub
-
                 }
-
             });
         }
-
         // Print File Link
         try {
             doc.insertString(doc.getLength(), "{{" + filename + "}}", linkStyle);
         } catch (BadLocationException e1) {
             e1.printStackTrace();
         }
-
         // new Line
         try {
             doc.insertString(doc.getLength(), "\n", userStyle);
         } catch (BadLocationException e1) {
             e1.printStackTrace();
         }
-
     }
-
     /**
      * Insert a new message into chat pane.
      */
@@ -145,13 +132,11 @@ public class FrameMain extends JFrame {
         } else {
             doc = chatWindowofUsers.get(username).getStyledDocument();
         }
-
         Style userStyle = doc.getStyle("User style");
         if (userStyle == null) {
             userStyle = doc.addStyle("User style", null);
             StyleConstants.setBold(userStyle, true);
         }
-
         if (yourMessage == true) {
             StyleConstants.setForeground(userStyle, new Color(84, 160, 229));
             StyleConstants.setAlignment(userStyle, StyleConstants.ALIGN_LEFT);
@@ -159,7 +144,6 @@ public class FrameMain extends JFrame {
             StyleConstants.setForeground(userStyle, Color.orange);
             StyleConstants.setAlignment(userStyle, StyleConstants.ALIGN_RIGHT);
         }
-
         // Print sender
         try {
             doc.insertString(doc.getLength(), username + ": ", userStyle);
@@ -298,6 +282,37 @@ public class FrameMain extends JFrame {
         endPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         endPanel.add(jbtn);
         endPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        JButton logOut=new JButton("Log out");
+        logOut.setAlignmentX(CENTER_ALIGNMENT);
+        JFrame logTemp=this;
+        logOut.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    dos.writeUTF("#logout");
+                    dos.flush();
+
+                    try {
+                        receiver.join();
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
+                    }
+
+                    if (dos != null) {
+                        dos.close();
+                    }
+                    if (dis != null) {
+                        dis.close();
+                    }
+                    logTemp.dispose();
+                    LoginFrame.GUI();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+        endPanel.add(logOut);
+        endPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         //check box
         JPanel checkboxJJ = new JPanel();
         checkboxJJ.setLayout(new BoxLayout(checkboxJJ, BoxLayout.LINE_AXIS));
@@ -384,11 +399,21 @@ public class FrameMain extends JFrame {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     currentcharUser=(String) onlineUsers.getSelectedItem();
                     if (chatWindow != chatWindowofUsers.get(currentcharUser)) {
-                        txtMessage.setText("");
-                        chatWindow = chatWindowofUsers.get(currentcharUser);
-                        chatWindow.setBackground(Color.BLACK);
-                        chatPanel.setViewportView(chatWindow);
-                        chatPanel.validate();
+                        try {
+                            if (!currentcharUser.equals("Main Window"))
+                            {
+                                if (!temp.equals(currentcharUser)){
+                                dos.writeUTF("@123"+username+"@"+currentcharUser);
+                                temp=currentcharUser;}
+                            }
+                            txtMessage.setText("");
+                            chatWindow = chatWindowofUsers.get(currentcharUser);
+                            chatWindow.setBackground(Color.BLACK);
+                            chatPanel.setViewportView(chatWindow);
+                            chatPanel.validate();
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
                     }
                     if (currentcharUser.equals("Main Window")) {
                         btnSend.setEnabled(false);
@@ -504,6 +529,16 @@ public class FrameMain extends JFrame {
                         performFileContent(sender, filename, file.toByteArray(), false);
 
                     }
+                    else if(method.contains("#confirmchat")){
+                        String[] getUsr=method.split("@");
+                        String sender=getUsr[1];
+                        String receiver=getUsr[2];
+                        int a=JOptionPane.showConfirmDialog(null,
+                                "Are you sure to chat with "+sender+" ?");
+                        if(a==JOptionPane.YES_OPTION){
+                            onlineUsers.setSelectedItem(sender);
+                        }
+                    }
                     //online user
                     else if (method.equals("#onlineusers")) {
                         String[] users = dis.readUTF().split(",");
@@ -588,7 +623,7 @@ public class FrameMain extends JFrame {
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
-                JOptionPane.showMessageDialog(null,"Successfully download!File is in "+saveFile.getAbsolutePath());
+                JOptionPane.showMessageDialog(null,"Successfully download! File is in "+saveFile.getAbsolutePath());
                 int nextAction = JOptionPane.showConfirmDialog(null, "Do you want to open this file?", "Successful", JOptionPane.YES_NO_OPTION);
                 if (nextAction == JOptionPane.YES_OPTION) {
                     try {

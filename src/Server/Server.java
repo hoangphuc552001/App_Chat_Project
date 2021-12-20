@@ -264,6 +264,23 @@ class Handler implements Runnable {
                     Server.updateOnlineUsers();
                     break;
                 }
+                else if (message.contains("@123")){
+                    String user=message.substring(4);
+                    String[] usr=user.split("@");
+                    Lock lock = new ReentrantLock();
+                    for (Handler client : Server.clients) {
+                        if (client.getUsername().equals(usr[1])) {
+                            lock.lock();
+                            try {
+                                client.getDostream().writeUTF("#confirmchat@"+usr[0]+"@"+usr[1]);
+                                client.getDostream().flush();
+                                break;
+                            } finally {
+                                lock.unlock();
+                            }
+                        }
+                    }
+                }
                 else if (message.equals("#msgtext")) {
                     String receiver = distream.readUTF();
                     String content = distream.readUTF();
