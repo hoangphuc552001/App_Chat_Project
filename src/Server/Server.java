@@ -54,7 +54,7 @@ public class Server {
      * Update online users
      */
     public static void updateOnlineUsers() {
-        String message = " ";
+        String message = "Main Window";
         for (Handler client : clients) {
             if (client.getIsLoggedIn() == true) {
                 message += ",";

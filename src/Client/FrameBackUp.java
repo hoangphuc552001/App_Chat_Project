@@ -8,14 +8,12 @@ import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.text.*;
 
 /**
  * Created by Lê Hoàng Phúc - 19127059
  */
-public class FrameMain extends JFrame {
+public class FrameBackUp extends JFrame {
 
     private JButton btnFile;
     private JButton btnSend;
@@ -25,18 +23,21 @@ public class FrameMain extends JFrame {
     private JTextField txtMessage;
     private JTextPane chatWindow;
     JComboBox<String> onlineUsers = new JComboBox<String>();
-    JList<String> onUser_ = new JList<String>();
-    DefaultListModel<String> l1 = new DefaultListModel<>();
     private String username;
     private DataInputStream dis;
     private DataOutputStream dos;
-    private String currentcharUser = "Main Window";
+    private String currentcharUser=" ";
     private HashMap<String, JTextPane> chatWindowofUsers = new HashMap<String, JTextPane>();
     Thread receiver;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+
     /**
      * Insert a file into chat pane.
      */
-    private void performFileContent(String username, String filename, byte[] file, Boolean yourMessage) {
+    private void newFile(String username, String filename, byte[] file, Boolean yourMessage) {
 
         StyledDocument doc;
         String window = null;
@@ -54,39 +55,35 @@ public class FrameMain extends JFrame {
         }
 
         if (yourMessage == true) {
-            StyleConstants.setForeground(userStyle, new Color(84, 160, 229));
-            StyleConstants.setAlignment(userStyle, StyleConstants.ALIGN_LEFT);
-        } else {
             StyleConstants.setForeground(userStyle, Color.orange);
-            StyleConstants.setAlignment(userStyle, StyleConstants.ALIGN_RIGHT);
+        } else {
+            StyleConstants.setForeground(userStyle, new Color(84,160,229));
         }
 
-        try {
-            doc.insertString(doc.getLength(), username + ": ", userStyle);
-            doc.setParagraphAttributes(doc.getLength(), 1, userStyle, false);
-
-        } catch (BadLocationException e) {
-        }
+        try { doc.insertString(doc.getLength(), username + ": ", userStyle); }
+        catch (BadLocationException e){}
 
         Style linkStyle = doc.getStyle("Link style");
         if (linkStyle == null) {
             linkStyle = doc.addStyle("Link style", null);
-            StyleConstants.setForeground(linkStyle, Color.PINK);
+            StyleConstants.setForeground(linkStyle,Color.orange);
             StyleConstants.setUnderline(linkStyle, true);
             StyleConstants.setBold(linkStyle, true);
             linkStyle.addAttribute("link", new HyberlinkListener(filename, file));
         }
 
         if (chatWindowofUsers.get(window).getMouseListeners() != null) {
-            // Mouse listener click to download
+            // Tạo MouseListener cho các đường dẫn tải về file
             chatWindowofUsers.get(window).addMouseListener(new MouseListener() {
 
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(MouseEvent e)
+                {
                     Element ele = doc.getCharacterElement(chatWindow.viewToModel(e.getPoint()));
                     AttributeSet as = ele.getAttributes();
-                    HyberlinkListener listener = (HyberlinkListener) as.getAttribute("link");
-                    if (listener != null) {
+                    HyberlinkListener listener = (HyberlinkListener)as.getAttribute("link");
+                    if(listener != null)
+                    {
                         listener.execute();
                     }
                 }
@@ -118,14 +115,14 @@ public class FrameMain extends JFrame {
             });
         }
 
-        // Print File Link
+        // In ra đường dẫn tải file
         try {
-            doc.insertString(doc.getLength(), "{{" + filename + "}}", linkStyle);
+            doc.insertString(doc.getLength(),"<" + filename + ">", linkStyle);
         } catch (BadLocationException e1) {
             e1.printStackTrace();
         }
 
-        // new Line
+        // Xuống dòng
         try {
             doc.insertString(doc.getLength(), "\n", userStyle);
         } catch (BadLocationException e1) {
@@ -153,19 +150,14 @@ public class FrameMain extends JFrame {
         }
 
         if (yourMessage == true) {
-            StyleConstants.setForeground(userStyle, new Color(84, 160, 229));
-            StyleConstants.setAlignment(userStyle, StyleConstants.ALIGN_LEFT);
+            StyleConstants.setForeground(userStyle, new Color(84,160,229));
         } else {
             StyleConstants.setForeground(userStyle, Color.orange);
-            StyleConstants.setAlignment(userStyle, StyleConstants.ALIGN_RIGHT);
         }
 
         // Print sender
-        try {
-            doc.insertString(doc.getLength(), username + ": ", userStyle);
-            doc.setParagraphAttributes(doc.getLength(), 1, userStyle, false);
-        } catch (BadLocationException e) {
-        }
+        try { doc.insertString(doc.getLength(), username + ": ", userStyle); }
+        catch (BadLocationException e){}
 
         Style messageStyle = doc.getStyle("Message style");
         if (messageStyle == null) {
@@ -175,31 +167,24 @@ public class FrameMain extends JFrame {
         }
 
         // Print Content
-        try {
-            doc.insertString(doc.getLength(), message + "\n", messageStyle);
-        } catch (BadLocationException e) {
-        }
+        try { doc.insertString(doc.getLength(), message + "\n",messageStyle); }
+        catch (BadLocationException e){}
 
     }
 
     /**
      * Create the frame.
      */
-    public FrameMain(String username, DataInputStream dis, DataOutputStream dos) {
+    public FrameBackUp(String username, DataInputStream dis, DataOutputStream dos) {
         this.username = username;
         this.dis = dis;
         this.dos = dos;
         receiver = new Thread(new Receiver(dis));
         receiver.start();
         //Frame
-        //
-        contentPane = new JPanel();
-        contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-        contentPane.setBackground(new Color(230, 240, 247));
-        setContentPane(contentPane);
-//        Container con = this.getContentPane();
+        Container con = this.getContentPane();
         // Setting con
-        contentPane.setLayout(new BorderLayout());
+        con.setLayout(new BorderLayout());
         //top pannel
         //Top Pannel
         JPanel topPanel = new JPanel();
@@ -210,6 +195,7 @@ public class FrameMain extends JFrame {
         titleLabel.setFont(new Font("Monaco", Font.PLAIN, 35));
         titleLabel.setAlignmentX(CENTER_ALIGNMENT);
         topPanel.add(titleLabel);
+
         //
         JPanel jPaneltitle = new JPanel();
         jPaneltitle.setSize((new Dimension(50, 50)));
@@ -248,28 +234,28 @@ public class FrameMain extends JFrame {
         lbReceiver.setFont(new Font("Monaco", Font.BOLD, 16));
         usernamePanel.add(lbReceiver);
 
-        chatWindowofUsers.put("Main Window", new JTextPane());
-        chatWindow = chatWindowofUsers.get("Main Window");
+        chatWindowofUsers.put(" ", new JTextPane());
+        chatWindow = chatWindowofUsers.get(" ");
         chatWindow.setFont(new Font("Monaco", Font.PLAIN, 14));
         chatWindow.setEditable(false);
         chatWindow.setBackground(Color.BLACK);
         chatPanel.setViewportView(chatWindow);
-        JPanel chatChatPanel = new JPanel();
-        chatChatPanel.setLayout(new BoxLayout(chatChatPanel, BoxLayout.LINE_AXIS));
-        chatChatPanel.add(Box.createRigidArea(new Dimension(105, 30)));
+        JPanel chatChatPanel=new JPanel();
+        chatChatPanel.setLayout(new BoxLayout(chatChatPanel,BoxLayout.LINE_AXIS));
+        chatChatPanel.add(Box.createRigidArea(new Dimension(90,30)));
         chatChatPanel.add(txtMessage);
-        chatChatPanel.add(Box.createRigidArea(new Dimension(90, 30)));
-        JPanel midPanel = new JPanel();
-        midPanel.setLayout(new BoxLayout(midPanel, BoxLayout.PAGE_AXIS));
+        chatChatPanel.add(Box.createRigidArea(new Dimension(90,30)));
+        JPanel midPanel=new JPanel();
+        midPanel.setLayout(new BoxLayout(midPanel,BoxLayout.PAGE_AXIS));
         midPanel.add(chatPanel);
-        midPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        midPanel.add(Box.createRigidArea(new Dimension(0,20)));
         //
-        JPanel endPanel = new JPanel();
-        endPanel.setLayout(new BoxLayout(endPanel, BoxLayout.PAGE_AXIS));
+        JPanel endPanel=new JPanel();
+        endPanel.setLayout(new BoxLayout(endPanel,BoxLayout.PAGE_AXIS));
         endPanel.add(chatChatPanel);
         //
         Dimension size = new Dimension(160, 35);
-        btnSend = new JButton("Send");
+        btnSend=new JButton("Send");
         btnSend.setFont(new Font("Monaco", Font.BOLD, 18));
         btnSend.setAlignmentX(CENTER_ALIGNMENT);
         btnSend.setFocusable(false);
@@ -279,7 +265,7 @@ public class FrameMain extends JFrame {
         btnSend.setMaximumSize(size);
         btnSend.setEnabled(false);
         //
-        btnFile = new JButton("File");
+        btnFile=new JButton("File");
         btnFile.setFont(new Font("Monaco", Font.BOLD, 18));
         btnFile.setAlignmentX(CENTER_ALIGNMENT);
         btnFile.setFocusable(false);
@@ -289,52 +275,37 @@ public class FrameMain extends JFrame {
         btnFile.setMaximumSize(size);
         btnFile.setEnabled(false);
         //
-        JPanel jbtn = new JPanel();
-        jbtn.setLayout(new BoxLayout(jbtn, BoxLayout.LINE_AXIS));
+        JPanel jbtn=new JPanel();
+        jbtn.setLayout(new BoxLayout(jbtn,BoxLayout.LINE_AXIS));
         jbtn.add(btnSend);
-        jbtn.add(Box.createRigidArea(new Dimension(30, 0)));
+        jbtn.add(Box.createRigidArea(new Dimension(30,0)));
         jbtn.add(btnFile);
         //
-        endPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        endPanel.add(Box.createRigidArea(new Dimension(0,10)));
         endPanel.add(jbtn);
-        endPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        endPanel.add(Box.createRigidArea(new Dimension(0,10)));
         //check box
-        JPanel checkboxJJ = new JPanel();
-        checkboxJJ.setLayout(new BoxLayout(checkboxJJ, BoxLayout.LINE_AXIS));
-        JPanel checkboxJ = new JPanel();
-        checkboxJ.setLayout(new BoxLayout(checkboxJ, BoxLayout.PAGE_AXIS));
-        checkboxJ.setPreferredSize(new Dimension(105, 0));
-        JLabel onU = new JLabel("Online Users");
-        onU.setForeground(new Color(128, 51, 51));
+        JPanel checkboxJJ=new JPanel();
+        checkboxJJ.setLayout(new BoxLayout(checkboxJJ,BoxLayout.LINE_AXIS));
+        JPanel checkboxJ=new JPanel();
+        checkboxJ.setLayout(new BoxLayout(checkboxJ,BoxLayout.PAGE_AXIS));
+        checkboxJ.setPreferredSize(new Dimension(90,0));
+        JLabel onU=new JLabel("Online Users");
+        onU.setForeground(new Color(128,51,51));
         onU.setFont(new Font("Monaco", Font.BOLD, 13));
         onU.setAlignmentX(CENTER_ALIGNMENT);
         checkboxJ.add(onU);
         checkboxJ.add(onlineUsers);
-        checkboxJ.add(Box.createRigidArea(new Dimension(0, 250)));
+        checkboxJ.add(Box.createRigidArea(new Dimension(0,250)));
         checkboxJJ.add(checkboxJ);
-        //list
-        JPanel listJJ = new JPanel();
-        listJJ.setLayout(new BoxLayout(listJJ, BoxLayout.LINE_AXIS));
-        JPanel listJ = new JPanel();
-        listJ.setLayout(new BoxLayout(listJ, BoxLayout.PAGE_AXIS));
-        listJ.setPreferredSize(new Dimension(90, 0));
-        JLabel onU1 = new JLabel("Online Users");
-        onU1.setForeground(new Color(128, 51, 51));
-        onU1.setFont(new Font("Monaco", Font.BOLD, 13));
-        onU1.setAlignmentX(CENTER_ALIGNMENT);
-        listJ.add(onU1);
-        listJ.add(onUser_);
-        listJ.add(Box.createRigidArea(new Dimension(0, 250)));
-        listJJ.add(listJ);
         //container
-        contentPane.add(topPanel, BorderLayout.PAGE_START);
-        contentPane.add(checkboxJJ, BorderLayout.LINE_START);
-        contentPane.add(listJJ, BorderLayout.LINE_END);
-        contentPane.add(midPanel, BorderLayout.CENTER);
-//        con.add(Box.createRigidArea(new Dimension(90,0)),BorderLayout.LINE_END);
-        contentPane.add(endPanel, BorderLayout.PAGE_END);
+        con.add(topPanel, BorderLayout.PAGE_START);
+        con.add(checkboxJJ,BorderLayout.LINE_START);
+        con.add(midPanel,BorderLayout.CENTER);
+        con.add(Box.createRigidArea(new Dimension(90,0)),BorderLayout.LINE_END);
+        con.add(endPanel,BorderLayout.PAGE_END);
         // Setting JFrame
-        this.setSize(new Dimension(585, 451));
+        this.setSize(new Dimension(585,451));
         this.setTitle("Chat App");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
@@ -344,7 +315,7 @@ public class FrameMain extends JFrame {
         btnFile.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
-                // Perform dialog file chooser
+                // Hiển thị hộp thoại cho người dùng chọn file để gửi
                 JFileChooser fileChooser = new JFileChooser();
                 int rVal = fileChooser.showOpenDialog(contentPane.getParent());
                 if (rVal == JFileChooser.APPROVE_OPTION) {
@@ -372,46 +343,17 @@ public class FrameMain extends JFrame {
                         dos.flush();
                         bis.close();
                         //Print
-                        performFileContent(username, fileChooser.getSelectedFile().getName(), selectedFile, true);
+                        newFile(username, fileChooser.getSelectedFile().getName(), selectedFile, true);
                     } catch (IOException e1) {
                         e1.printStackTrace();
                     }
                 }
             }
         });
-        //
-//        onUser_.addListSelectionListener(new ListSelectionListener() {
-//            @Override
-//            public void valueChanged(ListSelectionEvent e) {
-//                if (!e.getValueIsAdjusting()) {
-//                    currentcharUser = (String) onUser_.getSelectedValue();
-//                    if (currentcharUser!=null){
-//                    if (chatWindow != chatWindowofUsers.get(currentcharUser)) {
-//                        txtMessage.setText("");
-//                        chatWindow = chatWindowofUsers.get(currentcharUser);
-//                        chatWindow.setBackground(Color.BLACK);
-//                        chatPanel.setViewportView(chatWindow);
-//                        chatPanel.validate();
-//                    }
-//
-//                    if (currentcharUser.equals("Main Window")) {
-//                        btnSend.setEnabled(false);
-//                        btnFile.setEnabled(false);
-//                        txtMessage.setEnabled(false);
-//                    } else {
-//                        btnSend.setEnabled(true);
-//                        btnFile.setEnabled(true);
-//                        txtMessage.setEnabled(true);
-//                    }}
-//                }
-//            }
-//        });
-
         onlineUsers.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     currentcharUser=(String) onlineUsers.getSelectedItem();
-                    System.out.println(currentcharUser);
                     if (chatWindow != chatWindowofUsers.get(currentcharUser)) {
                         txtMessage.setText("");
                         chatWindow = chatWindowofUsers.get(currentcharUser);
@@ -420,7 +362,7 @@ public class FrameMain extends JFrame {
                         chatPanel.validate();
                     }
 
-                    if (currentcharUser.equals("Main Window")) {
+                    if (currentcharUser.isBlank()) {
                         btnSend.setEnabled(false);
                         btnFile.setEnabled(false);
                         txtMessage.setEnabled(false);
@@ -454,11 +396,11 @@ public class FrameMain extends JFrame {
                     dos.flush();
                 } catch (IOException e1) {
                     e1.printStackTrace();
-                    newMessage("ERROR", "Network error!", true);
+                    newMessage("ERROR" , "Network error!" , true);
                 }
 
                 // PrintMsg
-                newMessage(username, txtMessage.getText(), true);
+                newMessage(username , txtMessage.getText() , true);
                 txtMessage.setText("");
             }
         });
@@ -495,7 +437,7 @@ public class FrameMain extends JFrame {
     /**
      * Receiver Thread
      */
-    class Receiver implements Runnable {
+    class Receiver implements Runnable{
 
         private DataInputStream dis;
 
@@ -512,10 +454,11 @@ public class FrameMain extends JFrame {
                     String method = dis.readUTF();
                     //Text
                     if (method.equals("#msgtext")) {
-                        String sender = dis.readUTF();
+                        String sender =	dis.readUTF();
                         String message = dis.readUTF();
                         newMessage(sender, message, false);
-                    } else if (method.equals("#msgfile")) {
+                    }
+                    else if (method.equals("#msgfile")) {
                         // Nhận một file
                         String sender = dis.readUTF();
                         String filename = dis.readUTF();
@@ -531,22 +474,19 @@ public class FrameMain extends JFrame {
                         }
 
                         // In ra màn hình file đó
-                        performFileContent(sender, filename, file.toByteArray(), false);
+                        newFile(sender, filename, file.toByteArray(), false);
 
                     }
                     //online user
                     else if (method.equals("#onlineusers")) {
                         String[] users = dis.readUTF().split(",");
                         onlineUsers.removeAllItems();
-                        l1.removeAllElements();
                         String chatting = currentcharUser;
                         boolean isChattingOnline = false;
-                        for (String user : users) {
+                        for (String user: users) {
                             if (user.equals(username) == false) {
                                 //update online user
                                 onlineUsers.addItem(user);
-                                l1.addElement(user);
-                                onUser_ = new JList<>(l1);
                                 if (chatWindowofUsers.get(user) == null) {
                                     JTextPane temp = new JTextPane();
                                     temp.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -561,21 +501,23 @@ public class FrameMain extends JFrame {
 
                         if (isChattingOnline == false) {
                             //go back default window
-                            onlineUsers.setSelectedItem("Main Window");
+                            onlineUsers.setSelectedItem(" ");
                             JOptionPane.showMessageDialog(null, chatting + " is offline!\nGo back to main window");
                         } else {
                             onlineUsers.setSelectedItem(chatting);
                         }
 
                         onlineUsers.validate();
-                    } else if (method.equals("#leaving")) {
+                    }
+
+                    else if (method.equals("#leaving")) {
                         //leave the chat
                         break;
                     }
 
                 }
 
-            } catch (IOException ex) {
+            } catch(IOException ex) {
                 System.err.println(ex);
             } finally {
                 try {
@@ -590,7 +532,7 @@ public class FrameMain extends JFrame {
     }
 
     /**
-     * Click to download File
+     * MouseListener cho các đường dẫn tải file.
      */
     class HyberlinkListener extends AbstractAction {
         String filename;
@@ -606,7 +548,7 @@ public class FrameMain extends JFrame {
             execute();
         }
 
-        public void execute() {
+        public  void execute() {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setSelectedFile(new File(filename));
             int rVal = fileChooser.showSaveDialog(contentPane.getParent());

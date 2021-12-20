@@ -61,7 +61,6 @@ public class MenuFrame extends JFrame implements ActionListener{
         btnRegister.setUI(new stylebutton());
         btnRegister.setPreferredSize(new Dimension(300,50));
         btnRegister.setMaximumSize(size);
-
         // Add to container
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
         container.add(topPanel);
