@@ -137,7 +137,7 @@ public class FrameMain extends JFrame {
     /**
      * Insert a new message into chat pane.
      */
-    private void newMessage(String username, String message, Boolean yourMessage) {
+    private void performMessage(String username, String message, Boolean yourMessage) {
 
         StyledDocument doc;
         if (username.equals(this.username)) {
@@ -248,8 +248,8 @@ public class FrameMain extends JFrame {
         lbReceiver.setFont(new Font("Monaco", Font.BOLD, 16));
         usernamePanel.add(lbReceiver);
 
-        chatWindowofUsers.put("Main Window", new JTextPane());
-        chatWindow = chatWindowofUsers.get("Main Window");
+        chatWindowofUsers.put("Main", new JTextPane());
+        chatWindow = chatWindowofUsers.get("Main");
         chatWindow.setFont(new Font("Monaco", Font.PLAIN, 14));
         chatWindow.setEditable(false);
         chatWindow.setBackground(Color.BLACK);
@@ -343,7 +343,6 @@ public class FrameMain extends JFrame {
         //
         btnFile.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-
                 // Perform dialog file chooser
                 JFileChooser fileChooser = new JFileChooser();
                 int rVal = fileChooser.showOpenDialog(contentPane.getParent());
@@ -371,6 +370,7 @@ public class FrameMain extends JFrame {
                         }
                         dos.flush();
                         bis.close();
+                        JOptionPane.showMessageDialog(null,"Send file successfully");
                         //Print
                         performFileContent(username, fileChooser.getSelectedFile().getName(), selectedFile, true);
                     } catch (IOException e1) {
@@ -379,39 +379,10 @@ public class FrameMain extends JFrame {
                 }
             }
         });
-        //
-//        onUser_.addListSelectionListener(new ListSelectionListener() {
-//            @Override
-//            public void valueChanged(ListSelectionEvent e) {
-//                if (!e.getValueIsAdjusting()) {
-//                    currentcharUser = (String) onUser_.getSelectedValue();
-//                    if (currentcharUser!=null){
-//                    if (chatWindow != chatWindowofUsers.get(currentcharUser)) {
-//                        txtMessage.setText("");
-//                        chatWindow = chatWindowofUsers.get(currentcharUser);
-//                        chatWindow.setBackground(Color.BLACK);
-//                        chatPanel.setViewportView(chatWindow);
-//                        chatPanel.validate();
-//                    }
-//
-//                    if (currentcharUser.equals("Main Window")) {
-//                        btnSend.setEnabled(false);
-//                        btnFile.setEnabled(false);
-//                        txtMessage.setEnabled(false);
-//                    } else {
-//                        btnSend.setEnabled(true);
-//                        btnFile.setEnabled(true);
-//                        txtMessage.setEnabled(true);
-//                    }}
-//                }
-//            }
-//        });
-
         onlineUsers.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     currentcharUser=(String) onlineUsers.getSelectedItem();
-                    System.out.println(currentcharUser);
                     if (chatWindow != chatWindowofUsers.get(currentcharUser)) {
                         txtMessage.setText("");
                         chatWindow = chatWindowofUsers.get(currentcharUser);
@@ -419,7 +390,6 @@ public class FrameMain extends JFrame {
                         chatPanel.setViewportView(chatWindow);
                         chatPanel.validate();
                     }
-
                     if (currentcharUser.equals("Main Window")) {
                         btnSend.setEnabled(false);
                         btnFile.setEnabled(false);
@@ -454,11 +424,11 @@ public class FrameMain extends JFrame {
                     dos.flush();
                 } catch (IOException e1) {
                     e1.printStackTrace();
-                    newMessage("ERROR", "Network error!", true);
+                    performMessage("ERROR", "Network error!", true);
                 }
 
                 // PrintMsg
-                newMessage(username, txtMessage.getText(), true);
+                performMessage(username, txtMessage.getText(), true);
                 txtMessage.setText("");
             }
         });
@@ -514,7 +484,7 @@ public class FrameMain extends JFrame {
                     if (method.equals("#msgtext")) {
                         String sender = dis.readUTF();
                         String message = dis.readUTF();
-                        newMessage(sender, message, false);
+                        performMessage(sender, message, false);
                     } else if (method.equals("#msgfile")) {
                         // Nhận một file
                         String sender = dis.readUTF();
@@ -530,7 +500,7 @@ public class FrameMain extends JFrame {
                             size -= bufferSize;
                         }
 
-                        // In ra màn hình file đó
+                        // print file
                         performFileContent(sender, filename, file.toByteArray(), false);
 
                     }
@@ -558,7 +528,6 @@ public class FrameMain extends JFrame {
                                 isChattingOnline = true;
                             }
                         }
-
                         if (isChattingOnline == false) {
                             //go back default window
                             onlineUsers.setSelectedItem("Main Window");
@@ -566,7 +535,6 @@ public class FrameMain extends JFrame {
                         } else {
                             onlineUsers.setSelectedItem(chatting);
                         }
-
                         onlineUsers.validate();
                     } else if (method.equals("#leaving")) {
                         //leave the chat
@@ -612,7 +580,7 @@ public class FrameMain extends JFrame {
             int rVal = fileChooser.showSaveDialog(contentPane.getParent());
             if (rVal == JFileChooser.APPROVE_OPTION) {
 
-                // Mở file đã chọn sau đó lưu thông tin xuống file đó
+                // Open file to store
                 File saveFile = fileChooser.getSelectedFile();
                 BufferedOutputStream bos = null;
                 try {
@@ -620,9 +588,8 @@ public class FrameMain extends JFrame {
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
-
-                // Hiển thị JOptionPane cho người dùng có muốn mở file vừa tải về không
-                int nextAction = JOptionPane.showConfirmDialog(null, "Saved file to " + saveFile.getAbsolutePath() + "\nDo you want to open this file?", "Successful", JOptionPane.YES_NO_OPTION);
+                JOptionPane.showMessageDialog(null,"Successfully download!File is in "+saveFile.getAbsolutePath());
+                int nextAction = JOptionPane.showConfirmDialog(null, "Do you want to open this file?", "Successful", JOptionPane.YES_NO_OPTION);
                 if (nextAction == JOptionPane.YES_OPTION) {
                     try {
                         Desktop.getDesktop().open(saveFile);
