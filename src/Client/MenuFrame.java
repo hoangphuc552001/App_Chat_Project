@@ -5,6 +5,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import javax.swing.*;
+/**
+ * Created by Lê Hoàng Phúc - 19127059
+ */
 public class MenuFrame extends JFrame implements ActionListener{
     JButton btnLogin,btnRegister;
     MenuFrame(){
@@ -96,6 +99,10 @@ public class MenuFrame extends JFrame implements ActionListener{
         });
     }
 
+    /**
+     * Action Event
+     * @param e
+     */
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource().equals(btnLogin)){

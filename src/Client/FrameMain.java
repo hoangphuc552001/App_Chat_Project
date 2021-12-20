@@ -10,7 +10,9 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.*;
 
-
+/**
+ * Created by Lê Hoàng Phúc - 19127059
+ */
 public class FrameMain extends JFrame {
 
     private JButton btnFile;
@@ -25,7 +27,7 @@ public class FrameMain extends JFrame {
     private DataInputStream dis;
     private DataOutputStream dos;
     private String currentcharUser=" ";
-    private HashMap<String, JTextPane> chatWindows = new HashMap<String, JTextPane>();
+    private HashMap<String, JTextPane> chatWindowofUsers = new HashMap<String, JTextPane>();
     Thread receiver;
     public void setUsername(String username) {
         this.username = username;
@@ -44,7 +46,7 @@ public class FrameMain extends JFrame {
         } else {
             window = username;
         }
-        doc = chatWindows.get(window).getStyledDocument();
+        doc = chatWindowofUsers.get(window).getStyledDocument();
 
         Style userStyle = doc.getStyle("User style");
         if (userStyle == null) {
@@ -70,9 +72,9 @@ public class FrameMain extends JFrame {
             linkStyle.addAttribute("link", new HyberlinkListener(filename, file));
         }
 
-        if (chatWindows.get(window).getMouseListeners() != null) {
+        if (chatWindowofUsers.get(window).getMouseListeners() != null) {
             // Tạo MouseListener cho các đường dẫn tải về file
-            chatWindows.get(window).addMouseListener(new MouseListener() {
+            chatWindowofUsers.get(window).addMouseListener(new MouseListener() {
 
                 @Override
                 public void mouseClicked(MouseEvent e)
@@ -136,9 +138,9 @@ public class FrameMain extends JFrame {
 
         StyledDocument doc;
         if (username.equals(this.username)) {
-            doc = chatWindows.get(currentcharUser).getStyledDocument();
+            doc = chatWindowofUsers.get(currentcharUser).getStyledDocument();
         } else {
-            doc = chatWindows.get(username).getStyledDocument();
+            doc = chatWindowofUsers.get(username).getStyledDocument();
         }
 
         Style userStyle = doc.getStyle("User style");
@@ -153,7 +155,7 @@ public class FrameMain extends JFrame {
             StyleConstants.setForeground(userStyle, Color.orange);
         }
 
-        // In ra tên người gửi
+        // Print sender
         try { doc.insertString(doc.getLength(), username + ": ", userStyle); }
         catch (BadLocationException e){}
 
@@ -164,7 +166,7 @@ public class FrameMain extends JFrame {
             StyleConstants.setBold(messageStyle, false);
         }
 
-        // In ra nội dung tin nhắn
+        // Print Content
         try { doc.insertString(doc.getLength(), message + "\n",messageStyle); }
         catch (BadLocationException e){}
 
@@ -232,8 +234,8 @@ public class FrameMain extends JFrame {
         lbReceiver.setFont(new Font("Monaco", Font.BOLD, 16));
         usernamePanel.add(lbReceiver);
 
-        chatWindows.put(" ", new JTextPane());
-        chatWindow = chatWindows.get(" ");
+        chatWindowofUsers.put(" ", new JTextPane());
+        chatWindow = chatWindowofUsers.get(" ");
         chatWindow.setFont(new Font("Monaco", Font.PLAIN, 14));
         chatWindow.setEditable(false);
         chatWindow.setBackground(Color.BLACK);
@@ -321,10 +323,10 @@ public class FrameMain extends JFrame {
                     BufferedInputStream bis;
                     try {
                         bis = new BufferedInputStream(new FileInputStream(fileChooser.getSelectedFile()));
-                        // Đọc file vào biến selectedFile
+                        // read content to selectedFile
                         bis.read(selectedFile, 0, selectedFile.length);
 
-                        dos.writeUTF("File");
+                        dos.writeUTF("#msgfile");
                         dos.writeUTF(currentcharUser);
                         dos.writeUTF(fileChooser.getSelectedFile().getName());
                         dos.writeUTF(String.valueOf(selectedFile.length));
@@ -332,19 +334,15 @@ public class FrameMain extends JFrame {
                         int size = selectedFile.length;
                         int bufferSize = 2048;
                         int offset = 0;
-
-                        // Lần lượt gửi cho server từng buffer cho đến khi hết file
+                        // Send all buffer to end file
                         while (size > 0) {
                             dos.write(selectedFile, offset, Math.min(size, bufferSize));
                             offset += Math.min(size, bufferSize);
                             size -= bufferSize;
                         }
-
                         dos.flush();
-
                         bis.close();
-
-                        // In ra màn hình file
+                        //Print
                         newFile(username, fileChooser.getSelectedFile().getName(), selectedFile, true);
                     } catch (IOException e1) {
                         e1.printStackTrace();
@@ -356,9 +354,9 @@ public class FrameMain extends JFrame {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     currentcharUser=(String) onlineUsers.getSelectedItem();
-                    if (chatWindow != chatWindows.get(currentcharUser)) {
+                    if (chatWindow != chatWindowofUsers.get(currentcharUser)) {
                         txtMessage.setText("");
-                        chatWindow = chatWindows.get(currentcharUser);
+                        chatWindow = chatWindowofUsers.get(currentcharUser);
                         chatWindow.setBackground(Color.BLACK);
                         chatPanel.setViewportView(chatWindow);
                         chatPanel.validate();
@@ -391,9 +389,8 @@ public class FrameMain extends JFrame {
         // Set action perform to send button.
         btnSend.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-
                 try {
-                    dos.writeUTF("Text");
+                    dos.writeUTF("#msgtext");
                     dos.writeUTF(currentcharUser);
                     dos.writeUTF(txtMessage.getText());
                     dos.flush();
@@ -402,7 +399,7 @@ public class FrameMain extends JFrame {
                     newMessage("ERROR" , "Network error!" , true);
                 }
 
-                // In ra tin nhắn lên màn hình chat với người nhận
+                // PrintMsg
                 newMessage(username , txtMessage.getText() , true);
                 txtMessage.setText("");
             }
@@ -414,7 +411,7 @@ public class FrameMain extends JFrame {
             public void windowClosing(WindowEvent e) {
 
                 try {
-                    dos.writeUTF("Log out");
+                    dos.writeUTF("#logout");
                     dos.flush();
 
                     try {
@@ -438,7 +435,7 @@ public class FrameMain extends JFrame {
     }
 
     /**
-     * Luồng nhận tin nhắn từ server của mỗi client
+     * Receiver Thread
      */
     class Receiver implements Runnable{
 
@@ -453,18 +450,15 @@ public class FrameMain extends JFrame {
             try {
 
                 while (true) {
-                    // Chờ tin nhắn từ server
+                    // Response from server
                     String method = dis.readUTF();
-
-                    if (method.equals("Text")) {
-                        // Nhận một tin nhắn văn bản
+                    //Text
+                    if (method.equals("#msgtext")) {
                         String sender =	dis.readUTF();
                         String message = dis.readUTF();
-
-                        // In tin nhắn lên màn hình chat với người gửi
                         newMessage(sender, message, false);
                     }
-                    else if (method.equals("File")) {
+                    else if (method.equals("#msgfile")) {
                         // Nhận một file
                         String sender = dis.readUTF();
                         String filename = dis.readUTF();
@@ -483,25 +477,21 @@ public class FrameMain extends JFrame {
                         newFile(sender, filename, file.toByteArray(), false);
 
                     }
-
-                    else if (method.equals("Online users")) {
-                        // Nhận yêu cầu cập nhật danh sách người dùng trực tuyến
+                    //online user
+                    else if (method.equals("#onlineusers")) {
                         String[] users = dis.readUTF().split(",");
                         onlineUsers.removeAllItems();
-
                         String chatting = currentcharUser;
-
                         boolean isChattingOnline = false;
-
                         for (String user: users) {
                             if (user.equals(username) == false) {
-                                // Cập nhật danh sách các người dùng trực tuyến vào ComboBox onlineUsers (trừ bản thân)
+                                //update online user
                                 onlineUsers.addItem(user);
-                                if (chatWindows.get(user) == null) {
+                                if (chatWindowofUsers.get(user) == null) {
                                     JTextPane temp = new JTextPane();
                                     temp.setFont(new Font("Arial", Font.PLAIN, 14));
                                     temp.setEditable(false);
-                                    chatWindows.put(user, temp);
+                                    chatWindowofUsers.put(user, temp);
                                 }
                             }
                             if (chatting.equals(user)) {
@@ -510,7 +500,7 @@ public class FrameMain extends JFrame {
                         }
 
                         if (isChattingOnline == false) {
-                            // Nếu người đang chat không online thì chuyển hướng về màn hình mặc định và thông báo cho người dùng
+                            //go back default window
                             onlineUsers.setSelectedItem(" ");
                             JOptionPane.showMessageDialog(null, chatting + " is offline!\nGo back to main window");
                         } else {
@@ -520,8 +510,8 @@ public class FrameMain extends JFrame {
                         onlineUsers.validate();
                     }
 
-                    else if (method.equals("Safe to leave")) {
-                        // Thông báo có thể thoát
+                    else if (method.equals("#leaving")) {
+                        //leave the chat
                         break;
                     }
 

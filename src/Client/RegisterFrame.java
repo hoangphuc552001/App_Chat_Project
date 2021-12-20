@@ -6,7 +6,9 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
 import javax.swing.*;
-
+/**
+ * Created by Lê Hoàng Phúc - 19127059
+ */
 public class RegisterFrame extends JFrame implements ActionListener {
 
 
@@ -66,6 +68,9 @@ public class RegisterFrame extends JFrame implements ActionListener {
         this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
     }
 
+    /**
+     * GUI FRAME
+     */
     public static void GUI() {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -79,6 +84,10 @@ public class RegisterFrame extends JFrame implements ActionListener {
         });
     }
 
+    /**
+     * Action Event
+     * @param e
+     */
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource().equals(backButton)){

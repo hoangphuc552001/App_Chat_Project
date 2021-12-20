@@ -6,7 +6,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-
+/**
+ * Created by Lê Hoàng Phúc - 19127059
+ */
 public class ServerFrame extends JFrame implements ActionListener {
     JButton btnBack, btnStart, btnStop;
     public static int port = 3200;

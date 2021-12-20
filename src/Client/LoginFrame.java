@@ -6,7 +6,9 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
 import javax.swing.*;
-
+/**
+ * Created by Lê Hoàng Phúc - 19127059
+ */
 public class LoginFrame extends JFrame implements ActionListener {
     private String username;
     Container container = getContentPane();
@@ -18,7 +20,6 @@ public class LoginFrame extends JFrame implements ActionListener {
     JButton loginButton = new JButton("LOGIN");
     JButton backButton = new JButton("BACK");
     JCheckBox showPassword = new JCheckBox("Show Password");
-
     LoginFrame() {
         container.setLayout(null);
         //
@@ -53,6 +54,9 @@ public class LoginFrame extends JFrame implements ActionListener {
         this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
     }
 
+    /**
+     * GUI
+     */
     public static void GUI() {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -66,6 +70,10 @@ public class LoginFrame extends JFrame implements ActionListener {
         });
     }
 
+    /**
+     * Action event
+     * @param e
+     */
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource().equals(backButton)) {
@@ -102,8 +110,7 @@ public class LoginFrame extends JFrame implements ActionListener {
         }
     }
     /**
-     * Gửi yêu cầu đăng nhập đến server
-     * Trả về kết quả phản hồi từ server
+     * Send request login to server
      */
     public String Login(String username, String password) {
         try {

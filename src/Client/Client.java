@@ -6,11 +6,13 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
+/**
+ * Created by Lê Hoàng Phúc - 19127059
+ */
 public class Client {
     public static String localhost = "localhost";
     public static int port = 3200;
     public static Socket socket;
-
     public static DataInputStream distream;
     public static DataOutputStream dostream;
     /**

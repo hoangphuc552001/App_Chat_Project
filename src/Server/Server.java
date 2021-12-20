@@ -5,6 +5,9 @@ import java.net.Socket;
 import java.util.Vector;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+/**
+ * Created by Lê Hoàng Phúc - 19127059
+ */
 public class Server {
     /**
      * properties
@@ -48,8 +51,7 @@ public class Server {
     }
 
     /**
-     * Gửi yêu cầu các user đang online cập nhật lại danh sách người dùng trực tuyến
-     * Được gọi mỗi khi có 1 user online hoặc offline
+     * Update online users
      */
     public static void updateOnlineUsers() {
         String message = " ";
@@ -62,9 +64,9 @@ public class Server {
         for (Handler client : clients) {
             if (client.getIsLoggedIn() == true) {
                 try {
-                    client.getDos().writeUTF("Online users");
-                    client.getDos().writeUTF(message);
-                    client.getDos().flush();
+                    client.getDostream().writeUTF("#onlineusers");
+                    client.getDostream().writeUTF(message);
+                    client.getDostream().flush();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -135,7 +137,7 @@ public class Server {
                             }
                         }
                     } else {
-                        dostream.writeUTF("Password is not correct");
+                        dostream.writeUTF("#incorrectpw");
                         dostream.flush();
                     }
                 }else if (request.equals("#stopserver")){
@@ -173,14 +175,12 @@ public class Server {
 }
 
 /**
- * Luồng riêng dùng để giao tiếp với mỗi user
+ * Thread from server
  */
 class Handler implements Runnable {
-    // Object để synchronize các hàm cần thiết
-    // Các client đều có chung object này được thừa hưởng từ chính server
     private Socket socket;
-    private DataInputStream dis;
-    private DataOutputStream dos;
+    private DataInputStream distream;
+    private DataOutputStream dostream;
     private String username;
     private String password;
     private boolean isLoggedIn;
@@ -189,8 +189,8 @@ class Handler implements Runnable {
         this.socket = socket;
         this.username = username;
         this.password = password;
-        this.dis = new DataInputStream(socket.getInputStream());
-        this.dos = new DataOutputStream(socket.getOutputStream());
+        this.distream = new DataInputStream(socket.getInputStream());
+        this.dostream = new DataOutputStream(socket.getOutputStream());
         this.isLoggedIn = isLoggedIn;
     }
 
@@ -207,23 +207,22 @@ class Handler implements Runnable {
     public void setSocket(Socket socket) {
         this.socket = socket;
         try {
-            this.dis = new DataInputStream(socket.getInputStream());
-            this.dos = new DataOutputStream(socket.getOutputStream());
+            this.distream = new DataInputStream(socket.getInputStream());
+            this.dostream = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     /**
-     * Đóng socket kết nối với client
-     * Được gọi khi người dùng offline
+     * Close socket
      */
     public void closeSocket() {
         if (socket != null) {
             try {
                 socket.close();
-                dis.close();
-                dos.close();
+                distream.close();
+                dostream.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -242,49 +241,41 @@ class Handler implements Runnable {
         return this.password;
     }
 
-    public DataOutputStream getDos() {
-        return this.dos;
+    public DataOutputStream getDostream() {
+        return this.dostream;
     }
-
+    public DataInputStream getDistream() {
+        return this.distream;
+    }
     @Override
     public void run() {
 
         while (true) {
             try {
                 String message = null;
-
-                // Đọc yêu cầu từ user
-                message = dis.readUTF();
-                // Yêu cầu đăng xuất từ user
-                if (message.equals("Log out")) {
+                message = distream.readUTF();
+                if (message.equals("#logout")) {
                     ServerFrame.upDateUserOnline(2);
                     ServerFrame.txtMessage.append(username + " leaved chat app\n");
-                    // Thông báo cho user có thể đăng xuất
-                    dos.writeUTF("Safe to leave");
-                    dos.flush();
-
-                    // Đóng socket và chuyển trạng thái thành offline
+                    dostream.writeUTF("#leaving");
+                    dostream.flush();
                     closeSocket();
                     this.isLoggedIn = false;
-
-                    // Thông báo cho các user khác cập nhật danh sách người dùng trực tuyến
                     Server.updateOnlineUsers();
                     break;
                 }
-
-                // Yêu cầu gửi tin nhắn dạng văn bản
-                else if (message.equals("Text")) {
-                    String receiver = dis.readUTF();
-                    String content = dis.readUTF();
+                else if (message.equals("#msgtext")) {
+                    String receiver = distream.readUTF();
+                    String content = distream.readUTF();
                     Lock lock = new ReentrantLock();
                     for (Handler client : Server.clients) {
                         if (client.getUsername().equals(receiver)) {
                             lock.lock();
                             try {
-                                client.getDos().writeUTF("Text");
-                                client.getDos().writeUTF(this.username);
-                                client.getDos().writeUTF(content);
-                                client.getDos().flush();
+                                client.getDostream().writeUTF("#msgtext");
+                                client.getDostream().writeUTF(this.username);
+                                client.getDostream().writeUTF(content);
+                                client.getDostream().flush();
                                 break;
                             } finally {
                                 lock.unlock();
@@ -292,14 +283,10 @@ class Handler implements Runnable {
                         }
                     }
                 }
-
-                // Yêu cầu gửi File
-                else if (message.equals("File")) {
-
-                    // Đọc các header của tin nhắn gửi file
-                    String receiver = dis.readUTF();
-                    String filename = dis.readUTF();
-                    int size = Integer.parseInt(dis.readUTF());
+                else if (message.equals("#msgfile")) {
+                    String receiver = distream.readUTF();
+                    String filename = distream.readUTF();
+                    int size = Integer.parseInt(distream.readUTF());
                     int bufferSize = 2048;
                     byte[] buffer = new byte[bufferSize];
                     Lock lock = new ReentrantLock();
@@ -307,17 +294,16 @@ class Handler implements Runnable {
                         if (client.getUsername().equals(receiver)) {
                             lock.lock();
                             try{
-                                client.getDos().writeUTF("File");
-                                client.getDos().writeUTF(this.username);
-                                client.getDos().writeUTF(filename);
-                                client.getDos().writeUTF(String.valueOf(size));
+                                client.getDostream().writeUTF("#msgfile");
+                                client.getDostream().writeUTF(this.username);
+                                client.getDostream().writeUTF(filename);
+                                client.getDostream().writeUTF(String.valueOf(size));
                                 while (size > 0) {
-                                    // Gửi lần lượt từng buffer cho người nhận cho đến khi hết file
-                                    dis.read(buffer, 0, Math.min(size, bufferSize));
-                                    client.getDos().write(buffer, 0, Math.min(size, bufferSize));
+                                    distream.read(buffer, 0, Math.min(size, bufferSize));
+                                    client.getDostream().write(buffer, 0, Math.min(size, bufferSize));
                                     size -= bufferSize;
                                 }
-                                client.getDos().flush();
+                                client.getDostream().flush();
                                 break;}
                             finally {
                                 lock.unlock();
