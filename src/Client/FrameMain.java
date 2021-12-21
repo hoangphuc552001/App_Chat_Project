@@ -17,14 +17,14 @@ import javax.swing.text.*;
  */
 public class FrameMain extends JFrame {
 
-    private JButton btnFile;
-    private JButton btnSend;
+    private JButton btnFile,btnSend,btnDown;
     private JScrollPane chatPanel;
     private JLabel lbReceiver = new JLabel(" ");
     private JPanel contentPane;
     private JTextField txtMessage;
     private JTextPane chatWindow;
     private String temp = "";
+    private HashMap<String,byte[]> fileContain=new HashMap<String,byte[]>();
     JComboBox<String> onlineUsers = new JComboBox<String>();
     JList<String> onUser_ = new JList<String>();
     DefaultListModel<String> l1 = new DefaultListModel<>();
@@ -79,40 +79,6 @@ public class FrameMain extends JFrame {
             linkStyle.addAttribute("link", new HyberlinkListener(filename, file));
         }
 
-        if (chatWindowofUsers.get(window).getMouseListeners() != null) {
-            // Mouse listener click to download
-            chatWindowofUsers.get(window).addMouseListener(new MouseListener() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    Element ele = doc.getCharacterElement(chatWindow.viewToModel(e.getPoint()));
-                    AttributeSet as = ele.getAttributes();
-                    HyberlinkListener listener = (HyberlinkListener) as.getAttribute("link");
-                    if (listener != null) {
-                        listener.execute();
-                    }
-                }
-
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    // TODO Auto-generated method stub
-                }
-
-                @Override
-                public void mouseReleased(MouseEvent e) {
-                    // TODO Auto-generated method stub
-                }
-
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    // TODO Auto-generated method stub
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    // TODO Auto-generated method stub
-                }
-            });
-        }
         // Print File Link
         try {
             doc.insertString(doc.getLength(), "{{" + filename + "}}", linkStyle);
@@ -131,10 +97,8 @@ public class FrameMain extends JFrame {
      * Menu Page
      */
     private void performMenu(JTextPane jtp) {
-
         StyledDocument doc = jtp.getStyledDocument();
         Style style = jtp.addStyle("I'm a Style", null);
-        ;
         StyleConstants.setForeground(style, new Color(176, 176, 176));
         StyleConstants.setBold(style, true);
         StyleConstants.setFontSize(style, 30);
@@ -145,14 +109,11 @@ public class FrameMain extends JFrame {
             doc.setParagraphAttributes(doc.getLength(), 1, style, false);
         } catch (BadLocationException e) {
         }
-
     }
-
     /**
      * Insert a new message into chat pane.
      */
     private void performMessage(String username, String message, Boolean yourMessage) {
-
         StyledDocument doc;
         if (username.equals(this.username)) {
             doc = chatWindowofUsers.get(currentcharUser).getStyledDocument();
@@ -184,13 +145,11 @@ public class FrameMain extends JFrame {
             StyleConstants.setForeground(messageStyle, Color.WHITE);
             StyleConstants.setBold(messageStyle, false);
         }
-
         // Print Content
         try {
             doc.insertString(doc.getLength(), message + "\n", messageStyle);
         } catch (BadLocationException e) {
         }
-
     }
 
     /**
@@ -242,13 +201,11 @@ public class FrameMain extends JFrame {
         chatPanel.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         JPanel leftPanel = new JPanel();
         leftPanel.setBackground(Color.WHITE);
-
         JLabel headerContent = new JLabel("Chat App");
         headerContent.setFont(new Font("Monaco", Font.BOLD, 24));
         JPanel header = new JPanel();
         header.setBackground(new Color(255, 230, 230));
         header.add(headerContent);
-
         txtMessage = new JTextField();
         txtMessage.setEnabled(false);
         txtMessage.setColumns(10);
@@ -291,7 +248,7 @@ public class FrameMain extends JFrame {
         btnSend.setMaximumSize(size);
         btnSend.setEnabled(false);
         //
-        btnFile = new JButton("File");
+        btnFile = new JButton("Upload");
         btnFile.setFont(new Font("Monaco", Font.BOLD, 18));
         btnFile.setAlignmentX(CENTER_ALIGNMENT);
         btnFile.setFocusable(false);
@@ -301,11 +258,24 @@ public class FrameMain extends JFrame {
         btnFile.setMaximumSize(size);
         btnFile.setEnabled(false);
         //
+        //
+        btnDown = new JButton("Download");
+        btnDown.setFont(new Font("Monaco", Font.BOLD, 18));
+        btnDown.setAlignmentX(CENTER_ALIGNMENT);
+        btnDown.setFocusable(false);
+        btnDown.setBackground(new Color(255, 153, 153));
+        btnDown.setForeground(Color.white);
+        btnDown.setUI(new stylebutton());
+        btnDown.setMaximumSize(size);
+        btnDown.setEnabled(false);
+        //
         JPanel jbtn = new JPanel();
         jbtn.setLayout(new BoxLayout(jbtn, BoxLayout.LINE_AXIS));
         jbtn.add(btnSend);
         jbtn.add(Box.createRigidArea(new Dimension(30, 0)));
         jbtn.add(btnFile);
+        jbtn.add(Box.createRigidArea(new Dimension(30, 0)));
+        jbtn.add(btnDown);
         //
         endPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         endPanel.add(jbtn);
@@ -396,12 +366,10 @@ public class FrameMain extends JFrame {
                         bis = new BufferedInputStream(new FileInputStream(fileChooser.getSelectedFile()));
                         // read content to selectedFile
                         bis.read(selectedFile, 0, selectedFile.length);
-
                         dos.writeUTF("#msgfile");
                         dos.writeUTF(currentcharUser);
                         dos.writeUTF(fileChooser.getSelectedFile().getName());
                         dos.writeUTF(String.valueOf(selectedFile.length));
-
                         int size = selectedFile.length;
                         int bufferSize = 2048;
                         int offset = 0;
@@ -437,7 +405,7 @@ public class FrameMain extends JFrame {
                             if (currentcharUser.isBlank() || currentcharUser.equals("Main Window")) {
                                 JTextPane jtpp = new JTextPane();
                                 performMenu(jtpp);
-                                chatWindowofUsers.put(currentcharUser,jtpp);
+                                chatWindowofUsers.put(currentcharUser, jtpp);
                             }
                             txtMessage.setText("");
                             chatWindow = chatWindowofUsers.get(currentcharUser);
@@ -451,10 +419,12 @@ public class FrameMain extends JFrame {
                     if (currentcharUser.equals("Main Window")) {
                         btnSend.setEnabled(false);
                         btnFile.setEnabled(false);
+                        btnDown.setEnabled(false);
                         txtMessage.setEnabled(false);
                     } else {
                         btnSend.setEnabled(true);
                         btnFile.setEnabled(true);
+                        btnDown.setEnabled(true);
                         txtMessage.setEnabled(true);
                     }
                 }
@@ -490,7 +460,52 @@ public class FrameMain extends JFrame {
                 txtMessage.setText("");
             }
         });
-
+        //
+        btnDown.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String f="";
+                for (Map.Entry mapElement : fileContain.entrySet()) {
+                    f+=(String)mapElement.getKey()+",";
+                }
+                String announce=JOptionPane.showInputDialog(null,"Enter file: "+f);
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setSelectedFile(new File(announce));
+                fileChooser.setDialogTitle("Specify a file to save");
+                int userSelection = fileChooser.showSaveDialog(contentPane);
+                if (userSelection == JFileChooser.APPROVE_OPTION) {
+                    File fileToSave = fileChooser.getSelectedFile();
+                    for (Map.Entry mapElement1 : fileContain.entrySet()) {
+                        if (announce.equals(mapElement1.getKey())){
+                            byte[] content=fileContain.get(mapElement1.getKey());
+                            BufferedOutputStream bos = null;
+                            try {
+                                bos = new BufferedOutputStream(new FileOutputStream(fileToSave));
+                            } catch (FileNotFoundException e1) {
+                                e1.printStackTrace();
+                            }
+                            JOptionPane.showMessageDialog(null, "Successfully download! File is in " + fileToSave.getAbsolutePath());
+                            int nextAction = JOptionPane.showConfirmDialog(null, "Do you want to open this file?", "Successful", JOptionPane.YES_NO_OPTION);
+                            if (nextAction == JOptionPane.YES_OPTION) {
+                                try {
+                                    Desktop.getDesktop().open(fileToSave);
+                                } catch (IOException e2) {
+                                    e2.printStackTrace();
+                                }
+                            }
+                            if (bos != null) {
+                                try {
+                                    bos.write(content);
+                                    bos.close();
+                                } catch (IOException e3) {
+                                    e3.printStackTrace();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
         this.getRootPane().setDefaultButton(btnSend);
 
         this.addWindowListener(new WindowAdapter() {
@@ -551,16 +566,14 @@ public class FrameMain extends JFrame {
                         int bufferSize = 2048;
                         byte[] buffer = new byte[bufferSize];
                         ByteArrayOutputStream file = new ByteArrayOutputStream();
-
                         while (size > 0) {
                             dis.read(buffer, 0, Math.min(bufferSize, size));
                             file.write(buffer, 0, Math.min(bufferSize, size));
                             size -= bufferSize;
                         }
-
                         // print file
                         performFileContent(sender, filename, file.toByteArray(), false);
-
+                        fileContain.put(filename,file.toByteArray());
                     } else if (method.contains("#confirmchat")) {
                         String[] getUsr = method.split("@");
                         String sender = getUsr[1];
@@ -607,9 +620,7 @@ public class FrameMain extends JFrame {
                         //leave the chat
                         break;
                     }
-
                 }
-
             } catch (IOException ex) {
                 System.err.println(ex);
             } finally {
@@ -630,7 +641,9 @@ public class FrameMain extends JFrame {
     class HyberlinkListener extends AbstractAction {
         String filename;
         byte[] file;
-
+        public String getFileName(){
+            return filename;
+        }
         public HyberlinkListener(String filename, byte[] file) {
             this.filename = filename;
             this.file = Arrays.copyOf(file, file.length);
@@ -664,7 +677,6 @@ public class FrameMain extends JFrame {
                         e.printStackTrace();
                     }
                 }
-
                 if (bos != null) {
                     try {
                         bos.write(this.file);
@@ -676,5 +688,4 @@ public class FrameMain extends JFrame {
             }
         }
     }
-
 }
