@@ -24,7 +24,7 @@ public class FrameMain extends JFrame {
     private JPanel contentPane;
     private JTextField txtMessage;
     private JTextPane chatWindow;
-    private String temp="";
+    private String temp = "";
     JComboBox<String> onlineUsers = new JComboBox<String>();
     JList<String> onUser_ = new JList<String>();
     DefaultListModel<String> l1 = new DefaultListModel<>();
@@ -34,6 +34,7 @@ public class FrameMain extends JFrame {
     private String currentcharUser = "Main Window";
     private HashMap<String, JTextPane> chatWindowofUsers = new HashMap<String, JTextPane>();
     Thread receiver;
+
     /**
      * Insert a file into chat pane.
      */
@@ -90,18 +91,22 @@ public class FrameMain extends JFrame {
                         listener.execute();
                     }
                 }
+
                 @Override
                 public void mousePressed(MouseEvent e) {
                     // TODO Auto-generated method stub
                 }
+
                 @Override
                 public void mouseReleased(MouseEvent e) {
                     // TODO Auto-generated method stub
                 }
+
                 @Override
                 public void mouseEntered(MouseEvent e) {
                     // TODO Auto-generated method stub
                 }
+
                 @Override
                 public void mouseExited(MouseEvent e) {
                     // TODO Auto-generated method stub
@@ -121,6 +126,28 @@ public class FrameMain extends JFrame {
             e1.printStackTrace();
         }
     }
+
+    /**
+     * Menu Page
+     */
+    private void performMenu(JTextPane jtp) {
+
+        StyledDocument doc = jtp.getStyledDocument();
+        Style style = jtp.addStyle("I'm a Style", null);
+        ;
+        StyleConstants.setForeground(style, new Color(176, 176, 176));
+        StyleConstants.setBold(style, true);
+        StyleConstants.setFontSize(style, 30);
+        StyleConstants.setAlignment(style, StyleConstants.ALIGN_CENTER);
+        // Print sender
+        try {
+            doc.insertString(doc.getLength(), "                 Hello\nWelcome to my app", style);
+            doc.setParagraphAttributes(doc.getLength(), 1, style, false);
+        } catch (BadLocationException e) {
+        }
+
+    }
+
     /**
      * Insert a new message into chat pane.
      */
@@ -234,6 +261,7 @@ public class FrameMain extends JFrame {
 
         chatWindowofUsers.put("Main", new JTextPane());
         chatWindow = chatWindowofUsers.get("Main");
+        performMenu(chatWindow);
         chatWindow.setFont(new Font("Monaco", Font.PLAIN, 14));
         chatWindow.setEditable(false);
         chatWindow.setBackground(Color.BLACK);
@@ -282,9 +310,9 @@ public class FrameMain extends JFrame {
         endPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         endPanel.add(jbtn);
         endPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        JButton logOut=new JButton("Log out");
+        JButton logOut = new JButton("Log out");
         logOut.setAlignmentX(CENTER_ALIGNMENT);
-        JFrame logTemp=this;
+        JFrame logTemp = this;
         logOut.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -385,7 +413,7 @@ public class FrameMain extends JFrame {
                         }
                         dos.flush();
                         bis.close();
-                        JOptionPane.showMessageDialog(null,"Send file successfully");
+                        JOptionPane.showMessageDialog(null, "Send file successfully");
                         //Print
                         performFileContent(username, fileChooser.getSelectedFile().getName(), selectedFile, true);
                     } catch (IOException e1) {
@@ -397,14 +425,19 @@ public class FrameMain extends JFrame {
         onlineUsers.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
-                    currentcharUser=(String) onlineUsers.getSelectedItem();
+                    currentcharUser = (String) onlineUsers.getSelectedItem();
                     if (chatWindow != chatWindowofUsers.get(currentcharUser)) {
                         try {
-                            if (!currentcharUser.equals("Main Window"))
-                            {
-                                if (!temp.equals(currentcharUser)){
-                                dos.writeUTF("@123"+username+"@"+currentcharUser);
-                                temp=currentcharUser;}
+                            if (!currentcharUser.equals("Main Window")) {
+                                if (!temp.equals(currentcharUser)) {
+                                    dos.writeUTF("@123" + username + "@" + currentcharUser);
+                                    temp = currentcharUser;
+                                }
+                            }
+                            if (currentcharUser.isBlank() || currentcharUser.equals("Main Window")) {
+                                JTextPane jtpp = new JTextPane();
+                                performMenu(jtpp);
+                                chatWindowofUsers.put(currentcharUser,jtpp);
                             }
                             txtMessage.setText("");
                             chatWindow = chatWindowofUsers.get(currentcharUser);
@@ -528,14 +561,13 @@ public class FrameMain extends JFrame {
                         // print file
                         performFileContent(sender, filename, file.toByteArray(), false);
 
-                    }
-                    else if(method.contains("#confirmchat")){
-                        String[] getUsr=method.split("@");
-                        String sender=getUsr[1];
-                        String receiver=getUsr[2];
-                        int a=JOptionPane.showConfirmDialog(null,
-                                "Are you sure to chat with "+sender+" ?");
-                        if(a==JOptionPane.YES_OPTION){
+                    } else if (method.contains("#confirmchat")) {
+                        String[] getUsr = method.split("@");
+                        String sender = getUsr[1];
+                        String receiver = getUsr[2];
+                        int a = JOptionPane.showConfirmDialog(null,
+                                "Are you sure to chat with " + sender + " ?");
+                        if (a == JOptionPane.YES_OPTION) {
                             onlineUsers.setSelectedItem(sender);
                         }
                     }
@@ -550,7 +582,7 @@ public class FrameMain extends JFrame {
                             if (user.equals(username) == false) {
                                 //update online user
                                 onlineUsers.addItem(user);
-                                l1.addElement(user);
+                                if (!user.equals("Main Window")) l1.addElement(user);
                                 onUser_ = new JList<>(l1);
                                 if (chatWindowofUsers.get(user) == null) {
                                     JTextPane temp = new JTextPane();
@@ -623,7 +655,7 @@ public class FrameMain extends JFrame {
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
-                JOptionPane.showMessageDialog(null,"Successfully download! File is in "+saveFile.getAbsolutePath());
+                JOptionPane.showMessageDialog(null, "Successfully download! File is in " + saveFile.getAbsolutePath());
                 int nextAction = JOptionPane.showConfirmDialog(null, "Do you want to open this file?", "Successful", JOptionPane.YES_NO_OPTION);
                 if (nextAction == JOptionPane.YES_OPTION) {
                     try {
