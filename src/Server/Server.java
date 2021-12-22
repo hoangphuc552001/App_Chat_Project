@@ -56,14 +56,14 @@ public class Server {
      * Update online users
      */
     public static void updateOnlineUsers() {
-        String message = "Main Window";
-        for (Handler client : clients) {
+        String message = " ";
+        for (Handler client:clients) {
             if (client.getIsLoggedIn() == true) {
                 message += ",";
                 message += client.getUsername();
             }
         }
-        for (Handler client : clients) {
+        for (Handler client:clients) {
             if (client.getIsLoggedIn() == true) {
                 try {
                     client.getDostream().writeUTF("#onlineusers");
@@ -75,7 +75,6 @@ public class Server {
             }
         }
     }
-
     public Server() throws IOException {
         DataInputStream distream=null;
         DataOutputStream dostream=null;
@@ -261,7 +260,7 @@ class Handler implements Runnable {
                     ServerFrame.txtMessage.append(username + " leaved chat app\n");
                     dostream.writeUTF("#leaving");
                     dostream.flush();
-                    closeSocket();
+                    socket.close();
                     this.isLoggedIn = false;
                     Server.updateOnlineUsers();
                     break;
@@ -334,11 +333,13 @@ class Handler implements Runnable {
             } catch (EOFException e1){
                 e1.printStackTrace();
                 JOptionPane.showMessageDialog(null, "Stop Server!","Server Announcment",JOptionPane.ERROR_MESSAGE);
+                closeSocket();
                 System.exit(0);
             }
             catch (SocketException e2){
                 e2.printStackTrace();
                 JOptionPane.showMessageDialog(null, "Stop Server!","Server Announcment",JOptionPane.ERROR_MESSAGE);
+                closeSocket();
                 System.exit(0);
             }
             catch (IOException e) {

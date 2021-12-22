@@ -204,7 +204,8 @@ public class ServerFrame extends JFrame implements ActionListener {
                 txtMessage.append("ERROR");
                 e1.printStackTrace();
             }
-        } else if (e.getSource().equals(btnStop)) {
+        }
+        else if (e.getSource().equals(btnStop)) {
             user_Count_.setText("0");
             try {
                 Client.Client.Connect();
@@ -222,7 +223,6 @@ public class ServerFrame extends JFrame implements ActionListener {
                 btnStop.setEnabled(false);
                 btnStart.setEnabled(true);
             }
-            System.exit(0);
         }
     }
     public static void updateNumberClient() {
