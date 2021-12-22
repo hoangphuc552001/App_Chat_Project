@@ -181,6 +181,7 @@ public class ServerFrame extends JFrame implements ActionListener {
         // TODO Auto-generated method stub
         if (e.getSource() == btnBack) {
             this.dispose();
+            System.exit(0);
         } else if (e.getSource().equals(btnStart)) {
             try {
                 t = new Thread(){
@@ -221,6 +222,7 @@ public class ServerFrame extends JFrame implements ActionListener {
                 btnStop.setEnabled(false);
                 btnStart.setEnabled(true);
             }
+            System.exit(0);
         }
     }
     public static void updateNumberClient() {

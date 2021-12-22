@@ -1,7 +1,9 @@
 package Server;
+import javax.swing.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Vector;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -329,7 +331,17 @@ class Handler implements Runnable {
                     }
                 }
 
-            } catch (IOException e) {
+            } catch (EOFException e1){
+                e1.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Stop Server!","Server Announcment",JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
+            }
+            catch (SocketException e2){
+                e2.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Stop Server!","Server Announcment",JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
+            }
+            catch (IOException e) {
                 e.printStackTrace();
             }
 

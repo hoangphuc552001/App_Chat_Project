@@ -87,7 +87,6 @@ public class LoginFrame extends JFrame implements ActionListener {
             }
         }else if(e.getSource().equals(loginButton)){
             String response = Login(userTextField.getText().toString(), passwordField.getText().toString());
-            // đăng nhập thành công thì server sẽ trả về  chuỗi "Log in successful"
             if (response.equals("#logok") ) {
                 username = userTextField.getText().toString();
                 JOptionPane.showMessageDialog(null,"Login successful. Welcome to my App Chat");
