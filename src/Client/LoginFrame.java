@@ -114,7 +114,6 @@ public class LoginFrame extends JFrame implements ActionListener {
     public String Login(String username, String password) {
         try {
             Client.Connect();
-
             Client.dostream.writeUTF("#login");
             Client.dostream.writeUTF(username);
             Client.dostream.writeUTF(password);

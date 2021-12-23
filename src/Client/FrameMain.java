@@ -11,12 +11,10 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.*;
-
 /**
  * Created by Lê Hoàng Phúc - 19127059
  */
 public class FrameMain extends JFrame {
-
     private JButton btnFile,btnSend,btnDown;
     private JScrollPane chatPanel;
     private JLabel lbReceiver = new JLabel(" ");
