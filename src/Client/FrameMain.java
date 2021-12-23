@@ -349,6 +349,7 @@ public class FrameMain extends JFrame {
                         txtMessage.setText("");
                         chatWindow = chatWindowofUsers.get(lbReceiver.getText());
                         chatWindow.setBackground(Color.BLACK);
+                        chatWindow.setPreferredSize(new Dimension(0,180));
                         chatPanel.setViewportView(chatWindow);
                         chatPanel.validate();
                         if (!lbReceiver.getText().equals(" ")){
