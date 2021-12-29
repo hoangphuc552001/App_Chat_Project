@@ -15,7 +15,6 @@ public class Client {
      * Connect to Server
      */
     public static void Connect() {
-        String[] fi_=new String[2];
         try {
             if (socket != null) {
                 socket.close();

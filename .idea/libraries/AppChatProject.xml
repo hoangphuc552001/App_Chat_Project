@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="AppChatProject">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/Server.jar!/" />
+      <root url="jar://$PROJECT_DIR$/Client.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
