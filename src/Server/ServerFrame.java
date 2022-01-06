@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+
 /**
  * Created by Lê Hoàng Phúc - 19127059
  */
@@ -15,8 +16,9 @@ public class ServerFrame extends JFrame implements ActionListener {
     JTextField portnameTextfield, servernameTextfield;
     public static JLabel user_Count_, status_;
     public static JTextArea txtMessage;
-    public static int totalAllUser=0;
+    public static int totalAllUser = 0;
     Thread t;
+
     /**
      * default constructor
      *
@@ -169,10 +171,11 @@ public class ServerFrame extends JFrame implements ActionListener {
     /**
      * update user online
      */
-    public static void upDateUserOnline(int type){
-        if (type==1) user_Count_.setText(String.valueOf(++totalAllUser));
+    public static void upDateUserOnline(int type) {
+        if (type == 1) user_Count_.setText(String.valueOf(++totalAllUser));
         else user_Count_.setText(String.valueOf(--totalAllUser));
     }
+
     /**
      * set action listener
      */
@@ -184,7 +187,7 @@ public class ServerFrame extends JFrame implements ActionListener {
             System.exit(0);
         } else if (e.getSource().equals(btnStart)) {
             try {
-                t = new Thread(){
+                t = new Thread() {
                     public void run() {
                         try {
                             new Server();
@@ -197,34 +200,37 @@ public class ServerFrame extends JFrame implements ActionListener {
                 port = Integer.valueOf(portnameTextfield.getText()).intValue();
                 status_.setText("RUNNING");
                 status_.setForeground(new Color(14, 152, 70));
-                txtMessage.append("Server is starting on port " + port+"\n");
+                txtMessage.append("Server is starting on port " + port + "\n");
                 btnStop.setEnabled(true);
                 btnStart.setEnabled(false);
             } catch (Exception e1) {
                 txtMessage.append("ERROR");
                 e1.printStackTrace();
             }
-        }
-        else if (e.getSource().equals(btnStop)) {
-            user_Count_.setText("0");
-            try {
-                Client.Client.Connect();
-                Client.Client.dostream.writeUTF("#stopserver");
-                txtMessage.append("Stop Server\n");
-                status_.setText("OFF");
-                status_.setForeground(new Color(211, 15, 15));
-                btnStop.setEnabled(false);
-                btnStart.setEnabled(true);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                txtMessage.append("Stop Server");
-                status_.setText("OFF");
-                status_.setForeground(new Color(211, 15, 15));
-                btnStop.setEnabled(false);
-                btnStart.setEnabled(true);
+        } else if (e.getSource().equals(btnStop)) {
+            int a = JOptionPane.showConfirmDialog(null, "Are you sure to stop server?");
+            if (a == JOptionPane.YES_OPTION) {
+                user_Count_.setText("0");
+                try {
+                    Client.Client.Connect();
+                    Client.Client.dostream.writeUTF("#stopserver");
+                    txtMessage.append("Stop Server\n");
+                    status_.setText("OFF");
+                    status_.setForeground(new Color(211, 15, 15));
+                    btnStop.setEnabled(false);
+                    btnStart.setEnabled(true);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    txtMessage.append("Stop Server");
+                    status_.setText("OFF");
+                    status_.setForeground(new Color(211, 15, 15));
+                    btnStop.setEnabled(false);
+                    btnStart.setEnabled(true);
+                }
             }
         }
     }
+
     public static void updateNumberClient() {
         int number = Integer.parseInt(user_Count_.getText());
         user_Count_.setText(Integer.toString(number + 1));

@@ -11,26 +11,28 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.*;
+
 /**
  * Created by Lê Hoàng Phúc - 19127059
  */
 public class FrameMain extends JFrame {
-    private JButton btnFile,btnSend,btnDown;
+    private JButton btnFile, btnSend, btnDown;
     private JScrollPane chatPanel;
     private JLabel lbReceiver = new JLabel(" ");
     private JPanel contentPane;
     private JTextField txtMessage;
     private JTextPane chatWindow;
     JComboBox<String> onlineUsers = new JComboBox<String>();
-    private HashMap<String,byte[]> fileContain=new HashMap<String,byte[]>();
+    private HashMap<String, byte[]> fileContain = new HashMap<String, byte[]>();
     private String username;
     private DataInputStream dis;
     private DataOutputStream dos;
     JList<String> onUser_ = new JList<String>();
     DefaultListModel<String> l1 = new DefaultListModel<>();
     private HashMap<String, JTextPane> chatWindowofUsers = new HashMap<String, JTextPane>();
-    String tempVal="";
+    String tempVal = "";
     Thread receiver;
+
     /**
      * Menu Page
      */
@@ -48,6 +50,7 @@ public class FrameMain extends JFrame {
         } catch (BadLocationException e) {
         }
     }
+
     /**
      * Insert a new message into chat pane.
      */
@@ -72,9 +75,11 @@ public class FrameMain extends JFrame {
             StyleConstants.setForeground(userStyle, new Color(154, 24, 95));
             StyleConstants.setAlignment(userStyle, StyleConstants.ALIGN_RIGHT);
         }
-        try { doc.insertString(doc.getLength(), username + ": ", userStyle);
-            doc.setParagraphAttributes(doc.getLength(), 1, userStyle, false); }
-        catch (BadLocationException e){}
+        try {
+            doc.insertString(doc.getLength(), username + ": ", userStyle);
+            doc.setParagraphAttributes(doc.getLength(), 1, userStyle, false);
+        } catch (BadLocationException e) {
+        }
 
         Style messageStyle = doc.getStyle("Message style");
         if (messageStyle == null) {
@@ -82,7 +87,46 @@ public class FrameMain extends JFrame {
             StyleConstants.setForeground(messageStyle, Color.WHITE);
             StyleConstants.setBold(messageStyle, false);
         }
-        try { doc.insertString(doc.getLength(), message + "\n",messageStyle); }
+        try {
+            doc.insertString(doc.getLength(), message + "\n", messageStyle);
+        } catch (BadLocationException e) {
+        }
+
+
+    }
+    private void performEmoij(String username, String emoji, Boolean yourMessage) {
+
+        StyledDocument doc;
+        if (username.equals(this.username)) {
+            doc = chatWindowofUsers.get(lbReceiver.getText()).getStyledDocument();
+        } else {
+            doc = chatWindowofUsers.get(username).getStyledDocument();
+        }
+
+        Style userStyle = doc.getStyle("User style");
+        if (userStyle == null) {
+            userStyle = doc.addStyle("User style", null);
+            StyleConstants.setBold(userStyle, true);
+        }
+
+        if (yourMessage == true) {
+            StyleConstants.setForeground(userStyle, new Color(154, 24, 95));
+            StyleConstants.setAlignment(userStyle, StyleConstants.ALIGN_RIGHT);
+        } else {
+            StyleConstants.setForeground(userStyle, new Color(159, 146, 7));
+            StyleConstants.setAlignment(userStyle, StyleConstants.ALIGN_LEFT);
+        }
+        try { doc.insertString(doc.getLength(), username + ": ", userStyle); }
+        catch (BadLocationException e){}
+
+        Style iconStyle = doc.getStyle("Icon style");
+        if (iconStyle == null) {
+            iconStyle = doc.addStyle("Icon style", null);
+        }
+        StyleConstants.setIcon(iconStyle, new ImageIcon(emoji));
+        try { doc.insertString(doc.getLength(), "invisible text", iconStyle); }
+        catch (BadLocationException e){}
+        try { doc.insertString(doc.getLength(), "\n", userStyle); }
         catch (BadLocationException e){}
 
     }
@@ -156,14 +200,14 @@ public class FrameMain extends JFrame {
         lbReceiver.setFont(new Font("Monaco", Font.BOLD, 20));
         lbReceiver.setForeground(new Color(154, 24, 95));
         usernamePanel.add(lbReceiver);
-        JTextPane inittp=new JTextPane();
+        JTextPane inittp = new JTextPane();
         performMenu(inittp);
         chatWindowofUsers.put(" ", inittp);
         chatWindow = chatWindowofUsers.get(" ");
         chatWindow.setFont(new Font("Monaco", Font.PLAIN, 14));
         chatWindow.setEditable(false);
         chatWindow.setBackground(Color.BLACK);
-        chatWindow.setPreferredSize(new Dimension(0,180));
+        chatWindow.setPreferredSize(new Dimension(0, 180));
         chatPanel.setViewportView(chatWindow);
         JPanel chatChatPanel = new JPanel();
         chatChatPanel.setLayout(new BoxLayout(chatChatPanel, BoxLayout.LINE_AXIS));
@@ -173,10 +217,10 @@ public class FrameMain extends JFrame {
         JPanel midPanel = new JPanel();
         midPanel.setLayout(new BoxLayout(midPanel, BoxLayout.PAGE_AXIS));
         midPanel.add(chatPanel);
-        JPanel footerpannel=new JPanel();
+        JPanel footerpannel = new JPanel();
         footerpannel.setBackground((new Color(255, 153, 153)));
-        footerpannel.setPreferredSize(new Dimension(0,5));
-        JLabel footerusername=new JLabel(username);
+        footerpannel.setPreferredSize(new Dimension(0, 5));
+        JLabel footerusername = new JLabel(username);
         footerusername.setFont(new Font("Monaco", Font.BOLD, 20));
         footerusername.setForeground(new Color(159, 146, 7));
         footerpannel.add(footerusername);
@@ -307,36 +351,52 @@ public class FrameMain extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // Perform dialog file chooser
                 JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setMultiSelectionEnabled(true);
+                String fileNames = "";
+                File[] files = null;
                 int rVal = fileChooser.showOpenDialog(contentPane.getParent());
                 if (rVal == JFileChooser.APPROVE_OPTION) {
-                    byte[] selectedFile = new byte[(int) fileChooser.getSelectedFile().length()];
-                    BufferedInputStream bis;
-                    try {
-                        bis = new BufferedInputStream(new FileInputStream(fileChooser.getSelectedFile()));
-                        // read content to selectedFile
+                    files = fileChooser.getSelectedFiles();
+                    for (File file : files) {
+                        fileNames += file.getName() + ",";
+                    }
+                }
+                try {
+                    dos.writeUTF("#msgfile");
+                    dos.writeUTF(lbReceiver.getText());
+                    dos.writeUTF(fileNames);
+                    String size_file = "";
+                    ArrayList<byte[]> byte_get = new ArrayList<>();
+                    byte[] selectedFile = null;
+                    BufferedInputStream bis = null;
+                    for (int i = 0; i < files.length; i++) {
+                        selectedFile = new byte[(int) files[i].length()];
+                        bis = new BufferedInputStream(new FileInputStream(files[i].getAbsolutePath()));
                         bis.read(selectedFile, 0, selectedFile.length);
-                        dos.writeUTF("#msgfile");
-                        dos.writeUTF(lbReceiver.getText());
-                        dos.writeUTF(fileChooser.getSelectedFile().getName());
-                        dos.writeUTF(String.valueOf(selectedFile.length));
-                        int size = selectedFile.length;
+                        String size = String.valueOf(selectedFile.length);
+                        size_file += size;
+                        size_file += ",";
+                        byte_get.add(selectedFile);
+                    }
+                    dos.writeUTF(size_file);
+                    String[] size_file_split = size_file.split(",");
+                    for (int j = 0; j < size_file_split.length; j++) {
+                        int size_ = Integer.parseInt(size_file_split[j]);
                         int bufferSize = 2048;
                         int offset = 0;
-                        // Send all buffer to end file
-                        while (size > 0) {
-                            dos.write(selectedFile, offset, Math.min(size, bufferSize));
-                            offset += Math.min(size, bufferSize);
-                            size -= bufferSize;
+                        while (size_ > 0) {
+                            dos.write(byte_get.get(j), offset, Math.min(size_, bufferSize));
+                            offset += Math.min(size_, bufferSize);
+                            size_ -= bufferSize;
                         }
                         dos.flush();
                         bis.close();
-                        JOptionPane.showMessageDialog(null, "Send file successfully");
-                        //Print
-//                        performFileContent(username, fileChooser.getSelectedFile().getName(), selectedFile, true);
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
                     }
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
                 }
+
             }
         });
         onlineUsers.addItemListener(new ItemListener() {
@@ -347,17 +407,17 @@ public class FrameMain extends JFrame {
                         txtMessage.setText("");
                         chatWindow = chatWindowofUsers.get(lbReceiver.getText());
                         chatWindow.setBackground(Color.BLACK);
-                        chatWindow.setPreferredSize(new Dimension(0,180));
+                        chatWindow.setPreferredSize(new Dimension(0, 180));
                         chatPanel.setViewportView(chatWindow);
                         chatPanel.validate();
-                        if (!lbReceiver.getText().equals(" ")){
+                        if (!lbReceiver.getText().equals(" ")) {
                             if (!tempVal.equals(lbReceiver.getText()))
-                            try {
-                                dos.writeUTF("@123" + username + "@" + lbReceiver.getText());
-                                tempVal=lbReceiver.getText();
-                            } catch (IOException ex) {
-                                ex.printStackTrace();
-                            }
+                                try {
+                                    dos.writeUTF("@123" + username + "@" + lbReceiver.getText());
+                                    tempVal = lbReceiver.getText();
+                                } catch (IOException ex) {
+                                    ex.printStackTrace();
+                                }
                         }
                     }
                     if (lbReceiver.getText().isBlank()) {
@@ -402,9 +462,26 @@ public class FrameMain extends JFrame {
                     e1.printStackTrace();
                     performMessage("ERROR", "Network error!", true);
                 }
-
-                // PrintMsg
-                performMessage(username, txtMessage.getText(), true);
+                JLabel smileIcon = new JLabel(new ImageIcon("emoji\\smile.png"));
+                JLabel sadIcon = new JLabel(new ImageIcon("emoji\\sad.png"));
+                JLabel heartIcon = new JLabel(new ImageIcon("emoji\\heart.png"));
+                JLabel confusedIcon = new JLabel(new ImageIcon("emoji\\confused.png"));
+                if (txtMessage.getText().toString().equals(":)")){
+                    performEmoij(username,smileIcon.getIcon().toString(),false);
+                }
+                else if (txtMessage.getText().toString().equals(":(")){
+                    performEmoij(username,sadIcon.getIcon().toString(),false);
+                }
+                else if (txtMessage.getText().toString().equals("<3")){
+                    performEmoij(username,heartIcon.getIcon().toString(),false);
+                }
+                else if (txtMessage.getText().toString().equals("-_-")){
+                    performEmoij(username,confusedIcon.getIcon().toString(),false);
+                }
+                else{
+                    // PrintMsg
+                    performMessage(username, txtMessage.getText(), true);
+                }
                 txtMessage.setText("");
             }
         });
@@ -412,20 +489,28 @@ public class FrameMain extends JFrame {
         btnDown.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String f="";
+                String f = "";
+                String[] listStr = new String[fileContain.entrySet().size()];
+                int i = 0;
                 for (Map.Entry mapElement : fileContain.entrySet()) {
-                    f+=(String)mapElement.getKey()+",";
+                    f += (String) mapElement.getKey() + ",";
+                    listStr[i++] = (String) mapElement.getKey();
                 }
-                String announce=JOptionPane.showInputDialog(null,"Enter file: "+f);
+                String input = (String) JOptionPane.showInputDialog(null, "Choose now...",
+                        "The Choice of a Lifetime", JOptionPane.QUESTION_MESSAGE, null, // Use
+                        // default
+                        // icon
+                        listStr, // Array of choices
+                        listStr[1]); // Initial choice
                 JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setSelectedFile(new File(announce));
+                fileChooser.setSelectedFile(new File(input));
                 fileChooser.setDialogTitle("Specify a file to save");
                 int userSelection = fileChooser.showSaveDialog(contentPane);
                 if (userSelection == JFileChooser.APPROVE_OPTION) {
                     File fileToSave = fileChooser.getSelectedFile();
                     for (Map.Entry mapElement1 : fileContain.entrySet()) {
-                        if (announce.equals(mapElement1.getKey())){
-                            byte[] content=fileContain.get(mapElement1.getKey());
+                        if (input.equals(mapElement1.getKey())) {
+                            byte[] content = fileContain.get(mapElement1.getKey());
                             BufferedOutputStream bos = null;
                             try {
                                 bos = new BufferedOutputStream(new FileOutputStream(fileToSave));
@@ -451,7 +536,6 @@ public class FrameMain extends JFrame {
                             }
                         }
                     }
-
                 }
             }
         });
@@ -507,58 +591,47 @@ public class FrameMain extends JFrame {
                     if (method.equals("#msgtext")) {
                         String sender = dis.readUTF();
                         String message = dis.readUTF();
-                        performMessage(sender, message, false);
+                        if (message.equals("<3")){
+                            JLabel smileIcon = new JLabel(new ImageIcon("emoji\\heart.png"));
+                            performEmoij(sender,smileIcon.getIcon().toString(),true);
+                        }
+                        else if (message.equals(":)")){
+                            JLabel smileIcon = new JLabel(new ImageIcon("emoji\\smile.png"));
+                            performEmoij(sender,smileIcon.getIcon().toString(),true);
+                        }
+                        else if (message.equals(":(")){
+                            JLabel smileIcon = new JLabel(new ImageIcon("emoji\\sad.png"));
+                            performEmoij(sender,smileIcon.getIcon().toString(),true);
+                        }
+                        else if (message.equals("-_-")){
+                            JLabel smileIcon = new JLabel(new ImageIcon("emoji\\confused.png"));
+                            performEmoij(sender,smileIcon.getIcon().toString(),true);
+                        }
+                        else{
+                            performMessage(sender, message, false);
+                        }
                     } else if (method.equals("#msgfile")) {
                         String sender = dis.readUTF();
                         String filename = dis.readUTF();
-                        int size = Integer.parseInt(dis.readUTF());
+                        String[] filesSplit_ = filename.split(",");
+                        String filesSize = dis.readUTF();
+                        String[] filesSizeSplit_ = filesSize.split(",");
+//                        int size = Integer.parseInt(dis.readUTF());
                         int bufferSize = 2048;
                         byte[] buffer = new byte[bufferSize];
-                        ByteArrayOutputStream file = new ByteArrayOutputStream();
-                        while (size > 0) {
-                            dis.read(buffer, 0, Math.min(bufferSize, size));
-                            file.write(buffer, 0, Math.min(bufferSize, size));
-                            size -= bufferSize;
-                        }
-                        // print file
-//                        performFileContent(sender, filename, file.toByteArray(), false);
-                        fileContain.put(filename,file.toByteArray());
-                        JFileChooser fileChooser = new JFileChooser();
-                        fileChooser.setSelectedFile(new File(filename));
-                        fileChooser.setDialogTitle("Specify a file to save");
-                        int userSelection = fileChooser.showSaveDialog(contentPane);
-                        if (userSelection == JFileChooser.APPROVE_OPTION) {
-                            File fileToSave = fileChooser.getSelectedFile();
-                            for (Map.Entry mapElement1 : fileContain.entrySet()) {
-                                if (filename.equals(mapElement1.getKey())){
-                                    byte[] content=fileContain.get(mapElement1.getKey());
-                                    BufferedOutputStream bos = null;
-                                    try {
-                                        bos = new BufferedOutputStream(new FileOutputStream(fileToSave));
-                                    } catch (FileNotFoundException e1) {
-                                        e1.printStackTrace();
-                                    }
-                                    JOptionPane.showMessageDialog(null, "Successfully download! File is in " + fileToSave.getAbsolutePath());
-                                    int nextAction = JOptionPane.showConfirmDialog(null, "Do you want to open this file?", "Successful", JOptionPane.YES_NO_OPTION);
-                                    if (nextAction == JOptionPane.YES_OPTION) {
-                                        try {
-                                            Desktop.getDesktop().open(fileToSave);
-                                        } catch (IOException e2) {
-                                            e2.printStackTrace();
-                                        }
-                                    }
-                                    if (bos != null) {
-                                        try {
-                                            bos.write(content);
-                                            bos.close();
-                                        } catch (IOException e3) {
-                                            e3.printStackTrace();
-                                        }
-                                    }
-                                }
+                        for (int i = 0; i < filesSizeSplit_.length; i++) {
+                            int size = Integer.parseInt(filesSizeSplit_[i]);
+                            ByteArrayOutputStream file = new ByteArrayOutputStream();
+                            while (size > 0) {
+                                dis.read(buffer, 0, Math.min(bufferSize, size));
+                                file.write(buffer, 0, Math.min(bufferSize, size));
+                                size -= bufferSize;
                             }
-
+                            fileContain.put(filesSplit_[i], file.toByteArray());
                         }
+
+                        JOptionPane.showMessageDialog(null, "Successfully download!");
+
                     } else if (method.contains("#confirmchat")) {
                         String[] getUsr = method.split("@");
                         String sender = getUsr[1];
@@ -578,7 +651,7 @@ public class FrameMain extends JFrame {
 
                         boolean isChattingOnline = false;
 
-                        for (String user: users) {
+                        for (String user : users) {
                             if (user.equals(username) == false) {
                                 onlineUsers.addItem(user);
                                 if (!user.equals(" ")) l1.addElement(user);
@@ -603,8 +676,7 @@ public class FrameMain extends JFrame {
                         }
 
                         onlineUsers.validate();
-                    }
-                    else if (method.equals("#leaving")) {
+                    } else if (method.equals("#leaving")) {
                         //leave the chat
                         break;
                     }

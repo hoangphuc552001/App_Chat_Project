@@ -1,4 +1,5 @@
 package Server;
+
 import javax.swing.*;
 import java.io.*;
 import java.net.ServerSocket;
@@ -7,6 +8,7 @@ import java.net.SocketException;
 import java.util.Vector;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * Created by Lê Hoàng Phúc - 19127059
  */
@@ -23,7 +25,8 @@ public class Server {
      */
     /**
      * get account to file to check user
-     //     */
+     * //
+     */
     private void getAccountFromFile() {
         File f = new File(dataAccountFile);
         if (f.exists())
@@ -31,7 +34,7 @@ public class Server {
                 BufferedReader br = new BufferedReader(new FileReader(f.getName()));
                 String line = br.readLine();
                 while (line != null) {
-                    clients.add(new Handler(line.split("@")[0], line.split("@")[1],false));
+                    clients.add(new Handler(line.split("@")[0], line.split("@")[1], false));
                     line = br.readLine();
                 }
                 br.close();
@@ -45,10 +48,10 @@ public class Server {
     /**
      * Save account to file
      */
-    private void saveAccountToFile(String username,String password) throws IOException {
-        FileWriter writer = new FileWriter(dataAccountFile,true);
+    private void saveAccountToFile(String username, String password) throws IOException {
+        FileWriter writer = new FileWriter(dataAccountFile, true);
         BufferedWriter buffer = new BufferedWriter(writer);
-        buffer.write(username+"@"+password+"\n");
+        buffer.write(username + "@" + password + "\n");
         buffer.close();
     }
 
@@ -57,13 +60,13 @@ public class Server {
      */
     public static void updateOnlineUsers() {
         String message = " ";
-        for (Handler client:clients) {
+        for (Handler client : clients) {
             if (client.getIsLoggedIn() == true) {
                 message += ",";
                 message += client.getUsername();
             }
         }
-        for (Handler client:clients) {
+        for (Handler client : clients) {
             if (client.getIsLoggedIn() == true) {
                 try {
                     client.getDostream().writeUTF("#onlineusers");
@@ -75,9 +78,10 @@ public class Server {
             }
         }
     }
+
     public Server() throws IOException {
-        DataInputStream distream=null;
-        DataOutputStream dostream=null;
+        DataInputStream distream = null;
+        DataOutputStream dostream = null;
         try {
             // Update account list from file
             this.getAccountFromFile();
@@ -89,7 +93,7 @@ public class Server {
                 InputStream is = socket.getInputStream();
                 OutputStream os = socket.getOutputStream();
                 distream = new DataInputStream(is);
-                dostream= new DataOutputStream(os);
+                dostream = new DataOutputStream(os);
                 // process signin signup
                 String request = distream.readUTF();
                 if (request.equals("#signup")) {
@@ -101,7 +105,7 @@ public class Server {
                         Handler newHandler = new Handler(socket, username, password, false);
                         clients.add(newHandler);
                         //Save account
-                        this.saveAccountToFile(username,password);
+                        this.saveAccountToFile(username, password);
                         dostream.writeUTF("#signupsuccessful");
                         dostream.flush();
                     } else {
@@ -141,7 +145,7 @@ public class Server {
                         dostream.writeUTF("#incorrectpw");
                         dostream.flush();
                     }
-                }else if (request.equals("#stopserver")){
+                } else if (request.equals("#stopserver")) {
                     if (serverSocket != null) {
                         serverSocket.close();
                         distream.close();
@@ -245,9 +249,11 @@ class Handler implements Runnable {
     public DataOutputStream getDostream() {
         return this.dostream;
     }
+
     public DataInputStream getDistream() {
         return this.distream;
     }
+
     @Override
     public void run() {
 
@@ -264,16 +270,15 @@ class Handler implements Runnable {
                     this.isLoggedIn = false;
                     Server.updateOnlineUsers();
                     break;
-                }
-                else if (message.contains("@123")){
-                    String user=message.substring(4);
-                    String[] usr=user.split("@");
+                } else if (message.contains("@123")) {
+                    String user = message.substring(4);
+                    String[] usr = user.split("@");
                     Lock lock = new ReentrantLock();
                     for (Handler client : Server.clients) {
                         if (client.getUsername().equals(usr[1])) {
                             lock.lock();
                             try {
-                                client.getDostream().writeUTF("#confirmchat@"+usr[0]+"@"+usr[1]);
+                                client.getDostream().writeUTF("#confirmchat@" + usr[0] + "@" + usr[1]);
                                 client.getDostream().flush();
                                 break;
                             } finally {
@@ -281,8 +286,7 @@ class Handler implements Runnable {
                             }
                         }
                     }
-                }
-                else if (message.equals("#msgtext")) {
+                } else if (message.equals("#msgtext")) {
                     String receiver = distream.readUTF();
                     String content = distream.readUTF();
                     Lock lock = new ReentrantLock();
@@ -300,49 +304,53 @@ class Handler implements Runnable {
                             }
                         }
                     }
-                }
-                else if (message.equals("#msgfile")) {
+                } else if (message.equals("#msgfile")) {
                     String receiver = distream.readUTF();
-                    String filename = distream.readUTF();
-                    int size = Integer.parseInt(distream.readUTF());
-                    int bufferSize = 2048;
-                    byte[] buffer = new byte[bufferSize];
+                    String filesGet = distream.readUTF();
+                    String[] filesSplit_ = filesGet.split(",");
+                    String filesSize = distream.readUTF();
+                    String[] filesSizeSplit_ = filesSize.split(",");
                     Lock lock = new ReentrantLock();
                     for (Handler client : Server.clients) {
                         if (client.getUsername().equals(receiver)) {
                             lock.lock();
-                            try{
+                            try {
                                 client.getDostream().writeUTF("#msgfile");
                                 client.getDostream().writeUTF(this.username);
-                                client.getDostream().writeUTF(filename);
-                                client.getDostream().writeUTF(String.valueOf(size));
-                                while (size > 0) {
-                                    distream.read(buffer, 0, Math.min(size, bufferSize));
-                                    client.getDostream().write(buffer, 0, Math.min(size, bufferSize));
-                                    size -= bufferSize;
+                                client.getDostream().writeUTF(filesGet);
+                                client.getDostream().writeUTF(filesSize);
+                                for (int i = 0; i < filesSizeSplit_.length; i++) {
+                                    int size = Integer.parseInt(filesSizeSplit_[i]);
+                                    int bufferSize = 2048;
+                                    byte[] buffer = new byte[bufferSize];
+                                    ByteArrayOutputStream file = new ByteArrayOutputStream();
+                                    while (size > 0) {
+                                        distream.read(buffer, 0, Math.min(bufferSize, size));
+                                        client.getDostream().write(buffer, 0, Math.min(bufferSize, size));
+                                        size -= bufferSize;
+                                    }
+                                    file.flush();
+                                    file.close();
                                 }
-                                client.getDostream().flush();
-                                break;}
-                            finally {
+                            } finally {
                                 lock.unlock();
                             }
                         }
                     }
+
                 }
 
-            } catch (EOFException e1){
+            } catch (EOFException e1) {
                 e1.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Stop Server!","Server Announcment",JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Stop Server!", "Server Announcment", JOptionPane.ERROR_MESSAGE);
                 closeSocket();
                 System.exit(0);
-            }
-            catch (SocketException e2){
+            } catch (SocketException e2) {
                 e2.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Stop Server!","Server Announcment",JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Stop Server!", "Server Announcment", JOptionPane.ERROR_MESSAGE);
                 closeSocket();
                 System.exit(0);
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 
