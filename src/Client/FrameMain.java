@@ -501,7 +501,7 @@ public class FrameMain extends JFrame {
                         // default
                         // icon
                         listStr, // Array of choices
-                        listStr[1]); // Initial choice
+                        listStr[0]); // Initial choice
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.setSelectedFile(new File(input));
                 fileChooser.setDialogTitle("Specify a file to save");
